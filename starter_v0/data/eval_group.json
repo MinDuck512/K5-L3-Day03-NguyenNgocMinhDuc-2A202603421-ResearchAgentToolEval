@@ -1,7 +1,114 @@
 {
   "dataset_id": "day04_v2_research_group",
   "dataset_role": "group",
-  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "description": "Team eval cases covering custom tools (summarize, calculator, cross_reference, export_report), boundaries, and multi-turn workflows.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_summarize_tool_routing",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tóm tắt giúp mình nội dung bài viết sau thành các gạch đầu dòng: Trí tuệ nhân tạo đang biến đổi ngành y tế, giúp phát hiện sớm bệnh lý và tối ưu hóa phác đồ điều trị.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "summarize", "args": {"style": "bullet_points"}}]},
+      "metadata": {"skill": "routing_summarize", "difficulty": "easy", "what_it_tests": "Yêu cầu tóm tắt text thành gạch đầu dòng -> gọi tool summarize với style=bullet_points"}
+    },
+    {
+      "id": "G02_calculator_stats_routing",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tính giúp mình tốc độ tăng trưởng doanh thu theo biểu thức: (350 - 280) / 280 * 100",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "calculator", "args": {"expression": "(350 - 280) / 280 * 100"}}]},
+      "metadata": {"skill": "routing_calculator", "difficulty": "easy", "what_it_tests": "Yêu cầu tính toán biểu thức số học -> gọi tool calculator"}
+    },
+    {
+      "id": "G03_cross_reference_claim",
+      "phase": "B",
+      "suite": "group",
+      "query": "Đối chiếu và kiểm chứng nhận định sau: 'Kiến trúc Transformer được Google công bố năm 2017'",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "cross_reference", "args": {"claim": "Kiến trúc Transformer được Google công bố năm 2017"}}]},
+      "metadata": {"skill": "routing_cross_reference", "difficulty": "medium", "what_it_tests": "Đối chiếu và kiểm chứng fact/claim -> gọi tool cross_reference"}
+    },
+    {
+      "id": "G04_export_report_filename",
+      "phase": "B",
+      "suite": "group",
+      "query": "Xuất bản báo cáo tổng hợp sau ra file markdown có tên ai_report_2026.md: # Báo cáo AI 2026\nNội dung tiến bộ công nghệ...",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "export_report", "args": {"filename": "ai_report_2026.md", "format_type": "markdown"}}]},
+      "metadata": {"skill": "arg_export_filename", "difficulty": "easy", "what_it_tests": "Xuất báo cáo với filename và format_type chính xác"}
+    },
+    {
+      "id": "G05_out_of_scope_creative",
+      "phase": "B",
+      "suite": "group",
+      "query": "Sáng tác giúp mình một bài thơ lục bát dài về mùa thu Hà Nội",
+      "failure_type": "out_of_scope",
+      "expect": {"no_tool": true, "behavior": "refuse"},
+      "metadata": {"skill": "out_of_scope_creative", "difficulty": "easy", "what_it_tests": "Sáng tác thơ nghệ thuật ngoài phạm vi research -> từ chối, không gọi tool"}
+    },
+    {
+      "id": "GM01_multiturn_clarify_then_summarize",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tóm tắt bài phân tích thị trường này hộ mình"},
+        {"role": "user", "content": "Tóm tắt theo dạng danh sách đánh số numbered nhé"},
+        {"role": "user", "content": "Nội dung bài viết: Thị trường công nghệ AI quý 3 tăng trưởng 25% nhờ nhu cầu GPU và datacenter."}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "summarize", "args": {"style": "numbered"}}]},
+      "metadata": {"skill": "multiturn_clarify_summarize", "difficulty": "medium", "what_it_tests": "Multi-turn: nhận dạng style=numbered từ turn 2 và text từ turn 3"}
+    },
+    {
+      "id": "GM02_multiturn_confirm_send_telegram",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Đăng bản tin AI sáng nay lên Telegram"},
+        {"role": "user", "content": "Tôi đã rà soát nội dung kỹ rồi, xác nhận gửi đi ngay"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "send", "args": {"confirmed": true}}]},
+      "metadata": {"skill": "multiturn_confirm_before_send", "difficulty": "medium", "what_it_tests": "Sau khi user xác nhận rõ ràng, model gọi send với confirmed=true"}
+    },
+    {
+      "id": "GM03_multiturn_switch_to_calc",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm tin tức tài chính của Nvidia hôm nay"},
+        {"role": "user", "content": "Thôi không tìm tin nữa, tính giúp mình tỷ suất lợi nhuận: (18 - 12) / 12 * 100"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "calculator", "args": {"expression": "(18 - 12) / 12 * 100"}}]},
+      "metadata": {"skill": "multiturn_switch_to_calc", "difficulty": "hard", "what_it_tests": "Chuyển hướng từ search sang calculator ở turn sau"}
+    },
+    {
+      "id": "GM04_multiturn_correction_export_filename",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Lưu báo cáo ra file draft.txt"},
+        {"role": "user", "content": "À đổi tên file thành final_analysis.md và lưu dạng markdown"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "export_report", "args": {"filename": "final_analysis.md", "format_type": "markdown"}}]},
+      "metadata": {"skill": "multiturn_correction_filename", "difficulty": "medium", "what_it_tests": "Multi-turn correction: cập nhật filename và format_type theo turn mới nhất"}
+    },
+    {
+      "id": "GM05_multiturn_cross_ref_sources",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Mình đang nghiên cứu về mô hình Llama 3"},
+        {"role": "user", "content": "Đối chiếu và kiểm chứng nhận định: 'Meta phát hành Llama 3 với 405 tỷ tham số' với các tài liệu đã có"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "cross_reference", "args": {"claim": "Meta phát hành Llama 3 với 405 tỷ tham số"}}]},
+      "metadata": {"skill": "multiturn_cross_ref_claim", "difficulty": "medium", "what_it_tests": "Multi-turn cross reference claim trích xuất từ turn sau"}
+    }
+  ]
 }

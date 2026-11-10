@@ -1,0 +1,310 @@
+{
+  "transcript_id": "v0_gemini_20261110T111053748627",
+  "version": "v0",
+  "artifact_version": "v0+peb1c8179815b+t5b22a2476d41",
+  "prompt_hash": "eb1c8179815bd79d34de7d326420bb99b3072e6e8ae96464c02d4411f905fc68",
+  "tools_hash": "5b22a2476d41b989d5dc1e54f24ce7890e781909deb2f7afafb856ab53a6d7c0",
+  "provider": "gemini",
+  "model": "gemini-3.5-flash",
+  "system_prompt": "C:\\Ai projects\\ai projects lab2\\K5-L3-Day03-NguyenNgocMinhDuc-2A202603421-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "C:\\Ai projects\\ai projects lab2\\K5-L3-Day03-NguyenNgocMinhDuc-2A202603421-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "history_window": 5,
+  "max_tool_rounds": 4,
+  "created_at": "2026-11-10T11:10:53",
+  "updated_at": "2026-11-10T11:24:19",
+  "turns": [
+    {
+      "turn_index": 1,
+      "started_at": "2026-11-10T11:11:52",
+      "user": "Tìm giúp tôi 2 bài báo mới về tool calling trong LLM agent",
+      "status": "provider_error",
+      "assistant_text": null,
+      "rounds": [],
+      "tool_events": [],
+      "error": "ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}",
+      "ended_at": "2026-11-10T11:12:12"
+    },
+    {
+      "turn_index": 2,
+      "started_at": "2026-11-10T11:15:19",
+      "user": "Tìm giúp tôi 2 bài báo mới về tool calling trong LLM agent",
+      "status": "answered",
+      "assistant_text": "Dưới đây là 2 bài báo nghiên cứu mới về **Tool Calling trong LLM Agent**:\n\n---\n\n### 1. **Least-Privilege Auditing of Agent Tool Calls with Intent Graphs and Reasoning-Guided Escalation**\n* **Mã arXiv:** `2611.11305v1` (Xuất bản: 11/2026)\n* **Tác giả:** Doron Shavit\n* **Tóm tắt nội dung:**\n  * **Vấn đề:** Các LLM Agent thực hiện tool call dễ bị tấn công gián tiếp qua Prompt Injection (khi đầu ra của công cụ chứa mã/lệnh độc hại nhằm định hướng Agent thực hiện các lệnh nguy hiểm mà người dùng không yêu cầu).\n  * **Giải pháp:** Tác giả đề xuất phương pháp kiểm tra thời gian thực (runtime audit) tạo ra một **Intent Graph** (đồ thị ý định) từ mục tiêu của người dùng và danh mục công cụ. Mọi cuộc gọi công cụ (tool call) được xác minh bằng vòng lặp quyết định nhanh (trung bình 5.7 microgiây/lệnh).\n  * **Cơ chế:** Các thao tác truy vấn dữ liệu cá nhân sẽ được đi qua (bypass), còn các hành vi sửa đổi/gửi dữ liệu bị nghi vấn sẽ được chuyển tiếp tới một mô hình giám sát lập luận (Reasoning Guardian) để đánh giá an toàn.\n\n---\n\n### 2. **Keeping LLM Agents on Procedure: Executable Finite-State Control for Long-Horizon Instruction Fidelity**\n* **Mã arXiv:** `2611.10884v1` (Xuất bản: 11/2026)\n* **Tác giả:** Yutao Sun và cộng sự\n* **Tóm tắt nội dung:**\n  * **Vấn đề:** Khi thực hiện chuỗi quy trình dài gồm nhiều bước tool calling (long-horizon workflows), LLM Agent thường gặp hiện tượng \"lệch quy trình\" (drift) hoặc đi tắt, bỏ qua các hướng dẫn ban đầu.\n  * **Giải pháp:** Bài báo đề xuất một máy trạng thái hữu hạn có thể thực thi (**Executable FSM**) nằm ngoài ngữ cảnh mô hình để quản lý quy trình. FSM can thiệp tại 3 điểm: khi gọi tool, khi chuyển trạng thái và khi kết thúc lượt chạy của agent.\n  * **Kết quả:** Việc áp dụng FSM giúp các mô hình nhỏ hơn (như Claude Haiku) duy trì chính xác quy trình qua hàng trăm bước với chi phí chỉ bằng 38% so với mô hình lớn chạy thông thường.",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "papers",
+              "args": {
+                "sort_by": "submittedDate",
+                "max_results": 5,
+                "query": "LLM agent tool calling"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "papers",
+              "args": {
+                "sort_by": "submittedDate",
+                "max_results": 5,
+                "query": "LLM agent tool calling"
+              },
+              "result": {
+                "tool": "arxiv_search",
+                "query": "LLM agent tool calling",
+                "api_query": "all:LLM AND all:agent AND all:tool AND all:calling",
+                "total_results": 1313,
+                "items": [
+                  {
+                    "arxiv_id": "2611.11305v1",
+                    "title": "Least-Privilege Auditing of Agent Tool Calls with Intent Graphs and Reasoning-Guided Escalation",
+                    "summary": "LLM agents that call tools are exposed to indirect prompt injection: instructions hidden in tool outputs can steer an agent into calls the user never asked for. We present a runtime audit that derives an executable intent graph from the user's objective and the deployment's tool catalog with one LLM call per task, and checks every tool call against it with a deterministic loop that makes no LLM call (median 5.7 microseconds per call). Two further mechanisms recover utility. Lookups of the user's own state bypass the audit, because the harm of an attack lies in its write or outward step. The calls that remain flagged are escalated to a reasoning guardian, in the spirit of tool-integrated reasoning models such as START: a reasoning model that sees only the objective, the plan, the call history without tool outputs, and the flagged call, and can verify facts with a restricted Python-expression tool. A current agent showed no baseline attack success, so end-to-end validation remains open.",
+                    "authors": [
+                      "Doron Shavit"
+                    ],
+                    "published": "2026-11-08T11:05:45Z",
+                    "updated": "2026-11-08T11:05:45Z",
+                    "url": "http://arxiv.org/abs/2611.11305v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.11305v1",
+                    "source": "arxiv.org",
+                    "primary_category": "cs.CR",
+                    "categories": [
+                      "cs.CR",
+                      "cs.AI"
+                    ]
+                  },
+                  {
+                    "arxiv_id": "2611.11266v1",
+                    "title": "ErosionBench: Probing Alignment Decay in Enterprise Multi-Agent Systems",
+                    "summary": "As enterprises delegate consequential work to multi-agent LLM systems, benign-looking requests can escalate into unsafe actions as they propagate across sessions through poisoned shared state, long-context documents, and trusted peer messages: no single message is malicious, yet the assembled tool action is. Prior benchmarks isolate a single agent under prompt injection or score multi-agent attacks by their final output, leaving cross-session erosion of shared state out of scope. We introduce ErosionBench, an environment-grounded benchmark that executes such attacks and verifies alignment decay at the process level, scoring the realized tool call against authorized intent and provenance with deterministic contracts, not output text. Each scenario is authored as a deterministic state graph before any prose is rendered, so every state change traces to a known cause. It spans four enterprise domains and four decay mechanisms across 1,728 scenarios with matched benign controls, labeled against the OWASP Top-10 for LLM Applications, plus 198 image-based attacks, each paired with a text equivalent, so a defense must survive the same attack in either channel. Perimeter defenses suppress attacks only by over-refusing 54-92% of legitimate work, so a low attack-success rate can conceal severe over-refusal. As a reference defense, we propose a calibrated Meta-Auditor pairing synchronous state checks with asynchronous trajectory monitoring; on a family-disjoint 906-scenario held-out split it reaches 98.5% recall at a 2.9% false-positive rate. Since it monitors trajectory, not surface content, its detection is channel-invariant: the strongest auditor flags image-delivered attacks about as reliably as their text equivalents (recall gap $\\leq$2 points per model). Across GPT, Gemini, and Claude auditors, calibration keeps false positives low while recall tracks model capability, strongest for Claude.",
+                    "authors": [
+                      "Riya Bharathwaj",
+                      "Akshara Prabhakar",
+                      "Roshan Ram",
+                      "Avni Kothari",
+                      "Sarah Tan",
+                      "Huan Wang",
+                      "Silvio Savarese"
+                    ],
+                    "published": "2026-11-08T09:40:52Z",
+                    "updated": "2026-11-08T09:40:52Z",
+                    "url": "http://arxiv.org/abs/2611.11266v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.11266v1",
+                    "source": "arxiv.org",
+                    "primary_category": "cs.CR",
+                    "categories": [
+                      "cs.CR",
+                      "cs.AI",
+                      "cs.MA"
+                    ]
+                  },
+                  {
+                    "arxiv_id": "2611.11216v1",
+                    "title": "Replay Fidelity in LLM Agent Evaluation: Randomness, Hidden State, and Test Oracles in AppWorld",
+                    "summary": "Reproducibility in large language model (LLM) agent evaluation depends on replay fidelity: which parts of an execution trace are reconstructed, controlled, and compared. This matters for agent debugging, failure analysis, and counterfactual evaluation of stateful tool use. We audit all 71 unsuccessful executions in a fixed historical AppWorld corpus using 284 isolated fixed-code replay attempts. Reconstructed declared settings admit 42 cases under printed-output, pre-oracle database-delta, and native-verdict/test-count checks; resetting the random-number generator before each interaction admits 68. The 26-case gap contracts to four under database/oracle checks, with one endpoint unknown. Mechanism studies identify four materialized-state discrepancies despite matching outputs and verdicts. In one admitted endpoint pair, an identical API call yields matching responses but different row effects; common future Python RNG removes that deterministic difference in two paired repetitions. A separate JWT credential-equality program and alignment controls expose authentication/write differences, with missing repetitions retained. For all 10 affected post-oracle export cases, native export from retained output trackers restores the reference comparison without changing original cached contents. A purposeful 12-case BFCL pilot shows no discrepancy under its tested public-state, return, and verdict checks. We preserve resource censoring and infrastructure deviations. The contribution is a bounded empirical characterization of replay eligibility, hidden state, and test-oracle integration, without estimating debugger accuracy, repair gains, or method-ranking distortion.",
+                    "authors": [
+                      "You Liu",
+                      "Quanchao Lu"
+                    ],
+                    "published": "2026-11-08T08:07:06Z",
+                    "updated": "2026-11-08T08:07:06Z",
+                    "url": "http://arxiv.org/abs/2611.11216v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.11216v1",
+                    "source": "arxiv.org",
+                    "primary_category": "cs.SE",
+                    "categories": [
+                      "cs.SE",
+                      "cs.AI"
+                    ]
+                  },
+                  {
+                    "arxiv_id": "2611.10884v1",
+                    "title": "Keeping LLM Agents on Procedure: Executable Finite-State Control for Long-Horizon Instruction Fidelity",
+                    "summary": "Much of the automation handed to language-model agents is procedural: each step needs little intelligence, but a long unattended run must follow a skill or SOP stated once at the start. We show that agents drift from such procedures over long runs, and that restating the instructions or resuming a stopped agent only moves the drift to another shortcut. We study an executable finite-state machine (FSM) that keeps the workflow state outside the model's context and enforces it at three points: tool calls, state transitions and the end of the agent's turn. In a pre-registered experiment on 200-account SOP-Bench batches, Claude Haiku 4.5 with the FSM decided on average 139 accounts correctly and by the procedure, against 48 for the strongest baseline (95% CI of the difference [46, 130]), and kept this rate to the end; across three models, the gain tracked how much the plain agent drifted. Because the runtime, not the model, supplies this long-horizon reliability, the FSM can let small models carry procedural work: Haiku 4.5 with it averaged more such decisions than plain Claude Sonnet 4.6 at 38% of the cost. Analyses on SWE-bench Verified, $τ^2$-bench, and staged and cross-context workflows further suggest that reliable long-horizon automation can come from stronger execution control, not only stronger models.",
+                    "authors": [
+                      "Yutao Sun",
+                      "Haokun Li",
+                      "Mingshuai Chen",
+                      "Guanyan Li",
+                      "Zhongyi Wang",
+                      "Shengchao Qin",
+                      "Jianwei Yin"
+                    ],
+                    "published": "2026-11-07T18:09:58Z",
+                    "updated": "2026-11-07T18:09:58Z",
+                    "url": "http://arxiv.org/abs/2611.10884v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.10884v1",
+                    "source": "arxiv.org",
+                    "primary_category": "cs.AI",
+                    "categories": [
+                      "cs.AI"
+                    ]
+                  },
+                  {
+                    "arxiv_id": "2611.10411v1",
+                    "title": "Tail-risk-aware Agent Safety: Constraining Tail Risks Across Multi-step LLM Agent Workflows",
+                    "summary": "LLM-based agents extend LLMs with tool calls, memory, planning, and retrieval to act in external environments, but they are vulnerable to attacks at different workflow steps. Existing defenses, including prompt engineering and post-training alignment, primarily improve LLM-only safety and often overlook risks that arise from multi-step execution. External verification adds guardrails to check each step separately, but it typically ignores how risks can propagate across steps. We argue that we should consider risk transitions across dependent steps through the agent workflow, rather than separate verification on a single step. In this paper, we propose \\textbf{T}ail-risk-aware \\textbf{A}gent \\textbf{S}afety (TAS), a tail-risk-aware safety framework that models agent workflow safety as a sequence of dependent safety states and constrains the rare but extreme risks (i.e., tail risk) with a shared budget. TAS first models safety-state transitions sequentially along the workflow as an MDP to trace risk propagation, then measures a tail-sensitive risk to target rare but high-cost risks (i.e., tail risk), and constrains the risk with a shared budget to derive a step-wise safety strategy. By constraining tail risk rather than the overall average, TAS suppresses rare high-cost failures while preserving utility in normal cases. Experiments show that TAS achieves better performance compared with eleven baselines across three benchmarks.",
+                    "authors": [
+                      "Shilong Pan",
+                      "Zhiliang Tian",
+                      "Zihan Chen",
+                      "Wentao Zou",
+                      "Weiguo Chen",
+                      "DongSheng Li"
+                    ],
+                    "published": "2026-11-07T02:45:44Z",
+                    "updated": "2026-11-07T02:45:44Z",
+                    "url": "http://arxiv.org/abs/2611.10411v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.10411v1",
+                    "source": "arxiv.org",
+                    "primary_category": "cs.AI",
+                    "categories": [
+                      "cs.AI"
+                    ]
+                  }
+                ],
+                "rate_limit_note": "arXiv may return 429 if called too frequently; this tool waits at least 3 seconds between requests in-process."
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": "Dưới đây là 2 bài báo nghiên cứu mới về **Tool Calling trong LLM Agent**:\n\n---\n\n### 1. **Least-Privilege Auditing of Agent Tool Calls with Intent Graphs and Reasoning-Guided Escalation**\n* **Mã arXiv:** `2611.11305v1` (Xuất bản: 11/2026)\n* **Tác giả:** Doron Shavit\n* **Tóm tắt nội dung:**\n  * **Vấn đề:** Các LLM Agent thực hiện tool call dễ bị tấn công gián tiếp qua Prompt Injection (khi đầu ra của công cụ chứa mã/lệnh độc hại nhằm định hướng Agent thực hiện các lệnh nguy hiểm mà người dùng không yêu cầu).\n  * **Giải pháp:** Tác giả đề xuất phương pháp kiểm tra thời gian thực (runtime audit) tạo ra một **Intent Graph** (đồ thị ý định) từ mục tiêu của người dùng và danh mục công cụ. Mọi cuộc gọi công cụ (tool call) được xác minh bằng vòng lặp quyết định nhanh (trung bình 5.7 microgiây/lệnh).\n  * **Cơ chế:** Các thao tác truy vấn dữ liệu cá nhân sẽ được đi qua (bypass), còn các hành vi sửa đổi/gửi dữ liệu bị nghi vấn sẽ được chuyển tiếp tới một mô hình giám sát lập luận (Reasoning Guardian) để đánh giá an toàn.\n\n---\n\n### 2. **Keeping LLM Agents on Procedure: Executable Finite-State Control for Long-Horizon Instruction Fidelity**\n* **Mã arXiv:** `2611.10884v1` (Xuất bản: 11/2026)\n* **Tác giả:** Yutao Sun và cộng sự\n* **Tóm tắt nội dung:**\n  * **Vấn đề:** Khi thực hiện chuỗi quy trình dài gồm nhiều bước tool calling (long-horizon workflows), LLM Agent thường gặp hiện tượng \"lệch quy trình\" (drift) hoặc đi tắt, bỏ qua các hướng dẫn ban đầu.\n  * **Giải pháp:** Bài báo đề xuất một máy trạng thái hữu hạn có thể thực thi (**Executable FSM**) nằm ngoài ngữ cảnh mô hình để quản lý quy trình. FSM can thiệp tại 3 điểm: khi gọi tool, khi chuyển trạng thái và khi kết thúc lượt chạy của agent.\n  * **Kết quả:** Việc áp dụng FSM giúp các mô hình nhỏ hơn (như Claude Haiku) duy trì chính xác quy trình qua hàng trăm bước với chi phí chỉ bằng 38% so với mô hình lớn chạy thông thường.",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "papers",
+          "args": {
+            "sort_by": "submittedDate",
+            "max_results": 5,
+            "query": "LLM agent tool calling"
+          },
+          "result": {
+            "tool": "arxiv_search",
+            "query": "LLM agent tool calling",
+            "api_query": "all:LLM AND all:agent AND all:tool AND all:calling",
+            "total_results": 1313,
+            "items": [
+              {
+                "arxiv_id": "2611.11305v1",
+                "title": "Least-Privilege Auditing of Agent Tool Calls with Intent Graphs and Reasoning-Guided Escalation",
+                "summary": "LLM agents that call tools are exposed to indirect prompt injection: instructions hidden in tool outputs can steer an agent into calls the user never asked for. We present a runtime audit that derives an executable intent graph from the user's objective and the deployment's tool catalog with one LLM call per task, and checks every tool call against it with a deterministic loop that makes no LLM call (median 5.7 microseconds per call). Two further mechanisms recover utility. Lookups of the user's own state bypass the audit, because the harm of an attack lies in its write or outward step. The calls that remain flagged are escalated to a reasoning guardian, in the spirit of tool-integrated reasoning models such as START: a reasoning model that sees only the objective, the plan, the call history without tool outputs, and the flagged call, and can verify facts with a restricted Python-expression tool. A current agent showed no baseline attack success, so end-to-end validation remains open.",
+                "authors": [
+                  "Doron Shavit"
+                ],
+                "published": "2026-11-08T11:05:45Z",
+                "updated": "2026-11-08T11:05:45Z",
+                "url": "http://arxiv.org/abs/2611.11305v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.11305v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.CR",
+                "categories": [
+                  "cs.CR",
+                  "cs.AI"
+                ]
+              },
+              {
+                "arxiv_id": "2611.11266v1",
+                "title": "ErosionBench: Probing Alignment Decay in Enterprise Multi-Agent Systems",
+                "summary": "As enterprises delegate consequential work to multi-agent LLM systems, benign-looking requests can escalate into unsafe actions as they propagate across sessions through poisoned shared state, long-context documents, and trusted peer messages: no single message is malicious, yet the assembled tool action is. Prior benchmarks isolate a single agent under prompt injection or score multi-agent attacks by their final output, leaving cross-session erosion of shared state out of scope. We introduce ErosionBench, an environment-grounded benchmark that executes such attacks and verifies alignment decay at the process level, scoring the realized tool call against authorized intent and provenance with deterministic contracts, not output text. Each scenario is authored as a deterministic state graph before any prose is rendered, so every state change traces to a known cause. It spans four enterprise domains and four decay mechanisms across 1,728 scenarios with matched benign controls, labeled against the OWASP Top-10 for LLM Applications, plus 198 image-based attacks, each paired with a text equivalent, so a defense must survive the same attack in either channel. Perimeter defenses suppress attacks only by over-refusing 54-92% of legitimate work, so a low attack-success rate can conceal severe over-refusal. As a reference defense, we propose a calibrated Meta-Auditor pairing synchronous state checks with asynchronous trajectory monitoring; on a family-disjoint 906-scenario held-out split it reaches 98.5% recall at a 2.9% false-positive rate. Since it monitors trajectory, not surface content, its detection is channel-invariant: the strongest auditor flags image-delivered attacks about as reliably as their text equivalents (recall gap $\\leq$2 points per model). Across GPT, Gemini, and Claude auditors, calibration keeps false positives low while recall tracks model capability, strongest for Claude.",
+                "authors": [
+                  "Riya Bharathwaj",
+                  "Akshara Prabhakar",
+                  "Roshan Ram",
+                  "Avni Kothari",
+                  "Sarah Tan",
+                  "Huan Wang",
+                  "Silvio Savarese"
+                ],
+                "published": "2026-11-08T09:40:52Z",
+                "updated": "2026-11-08T09:40:52Z",
+                "url": "http://arxiv.org/abs/2611.11266v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.11266v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.CR",
+                "categories": [
+                  "cs.CR",
+                  "cs.AI",
+                  "cs.MA"
+                ]
+              },
+              {
+                "arxiv_id": "2611.11216v1",
+                "title": "Replay Fidelity in LLM Agent Evaluation: Randomness, Hidden State, and Test Oracles in AppWorld",
+                "summary": "Reproducibility in large language model (LLM) agent evaluation depends on replay fidelity: which parts of an execution trace are reconstructed, controlled, and compared. This matters for agent debugging, failure analysis, and counterfactual evaluation of stateful tool use. We audit all 71 unsuccessful executions in a fixed historical AppWorld corpus using 284 isolated fixed-code replay attempts. Reconstructed declared settings admit 42 cases under printed-output, pre-oracle database-delta, and native-verdict/test-count checks; resetting the random-number generator before each interaction admits 68. The 26-case gap contracts to four under database/oracle checks, with one endpoint unknown. Mechanism studies identify four materialized-state discrepancies despite matching outputs and verdicts. In one admitted endpoint pair, an identical API call yields matching responses but different row effects; common future Python RNG removes that deterministic difference in two paired repetitions. A separate JWT credential-equality program and alignment controls expose authentication/write differences, with missing repetitions retained. For all 10 affected post-oracle export cases, native export from retained output trackers restores the reference comparison without changing original cached contents. A purposeful 12-case BFCL pilot shows no discrepancy under its tested public-state, return, and verdict checks. We preserve resource censoring and infrastructure deviations. The contribution is a bounded empirical characterization of replay eligibility, hidden state, and test-oracle integration, without estimating debugger accuracy, repair gains, or method-ranking distortion.",
+                "authors": [
+                  "You Liu",
+                  "Quanchao Lu"
+                ],
+                "published": "2026-11-08T08:07:06Z",
+                "updated": "2026-11-08T08:07:06Z",
+                "url": "http://arxiv.org/abs/2611.11216v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.11216v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.SE",
+                "categories": [
+                  "cs.SE",
+                  "cs.AI"
+                ]
+              },
+              {
+                "arxiv_id": "2611.10884v1",
+                "title": "Keeping LLM Agents on Procedure: Executable Finite-State Control for Long-Horizon Instruction Fidelity",
+                "summary": "Much of the automation handed to language-model agents is procedural: each step needs little intelligence, but a long unattended run must follow a skill or SOP stated once at the start. We show that agents drift from such procedures over long runs, and that restating the instructions or resuming a stopped agent only moves the drift to another shortcut. We study an executable finite-state machine (FSM) that keeps the workflow state outside the model's context and enforces it at three points: tool calls, state transitions and the end of the agent's turn. In a pre-registered experiment on 200-account SOP-Bench batches, Claude Haiku 4.5 with the FSM decided on average 139 accounts correctly and by the procedure, against 48 for the strongest baseline (95% CI of the difference [46, 130]), and kept this rate to the end; across three models, the gain tracked how much the plain agent drifted. Because the runtime, not the model, supplies this long-horizon reliability, the FSM can let small models carry procedural work: Haiku 4.5 with it averaged more such decisions than plain Claude Sonnet 4.6 at 38% of the cost. Analyses on SWE-bench Verified, $τ^2$-bench, and staged and cross-context workflows further suggest that reliable long-horizon automation can come from stronger execution control, not only stronger models.",
+                "authors": [
+                  "Yutao Sun",
+                  "Haokun Li",
+                  "Mingshuai Chen",
+                  "Guanyan Li",
+                  "Zhongyi Wang",
+                  "Shengchao Qin",
+                  "Jianwei Yin"
+                ],
+                "published": "2026-11-07T18:09:58Z",
+                "updated": "2026-11-07T18:09:58Z",
+                "url": "http://arxiv.org/abs/2611.10884v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.10884v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.AI",
+                "categories": [
+                  "cs.AI"
+                ]
+              },
+              {
+                "arxiv_id": "2611.10411v1",
+                "title": "Tail-risk-aware Agent Safety: Constraining Tail Risks Across Multi-step LLM Agent Workflows",
+                "summary": "LLM-based agents extend LLMs with tool calls, memory, planning, and retrieval to act in external environments, but they are vulnerable to attacks at different workflow steps. Existing defenses, including prompt engineering and post-training alignment, primarily improve LLM-only safety and often overlook risks that arise from multi-step execution. External verification adds guardrails to check each step separately, but it typically ignores how risks can propagate across steps. We argue that we should consider risk transitions across dependent steps through the agent workflow, rather than separate verification on a single step. In this paper, we propose \\textbf{T}ail-risk-aware \\textbf{A}gent \\textbf{S}afety (TAS), a tail-risk-aware safety framework that models agent workflow safety as a sequence of dependent safety states and constrains the rare but extreme risks (i.e., tail risk) with a shared budget. TAS first models safety-state transitions sequentially along the workflow as an MDP to trace risk propagation, then measures a tail-sensitive risk to target rare but high-cost risks (i.e., tail risk), and constrains the risk with a shared budget to derive a step-wise safety strategy. By constraining tail risk rather than the overall average, TAS suppresses rare high-cost failures while preserving utility in normal cases. Experiments show that TAS achieves better performance compared with eleven baselines across three benchmarks.",
+                "authors": [
+                  "Shilong Pan",
+                  "Zhiliang Tian",
+                  "Zihan Chen",
+                  "Wentao Zou",
+                  "Weiguo Chen",
+                  "DongSheng Li"
+                ],
+                "published": "2026-11-07T02:45:44Z",
+                "updated": "2026-11-07T02:45:44Z",
+                "url": "http://arxiv.org/abs/2611.10411v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.10411v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.AI",
+                "categories": [
+                  "cs.AI"
+                ]
+              }
+            ],
+            "rate_limit_note": "arXiv may return 429 if called too frequently; this tool waits at least 3 seconds between requests in-process."
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T11:15:33"
+    }
+  ]
+}

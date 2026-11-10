@@ -1,0 +1,253 @@
+# Research Agent Tool Declarations
+# Contains Core Tools, Extension/Bonus Tools, and Custom Research Utilities.
+tools:
+  # ---------------- Core tools ----------------
+  - name: clarify
+    description: "Hỏi lại người dùng để làm rõ thông tin khi yêu cầu thiếu dữ liệu bắt buộc (như thiếu tên tài khoản khi xem timeline, thiếu URL khi tóm tắt link cụ thể) hoặc cần người dùng xác nhận trước khi thực hiện hành động ghi/gửi (gửi Telegram). KHÔNG dùng khi thông tin đã đủ hoặc câu hỏi ngoài phạm vi cần từ chối."
+    parameters:
+      type: object
+      properties:
+        question:
+          type: string
+          description: "Nội dung câu hỏi ngắn gọn, lịch sự gửi cho người dùng"
+        response_type:
+          type: string
+          enum: [text, yes_no, choice]
+          default: "text"
+          description: "Kiểu trả lời mong đợi: 'text' khi cần người dùng điền thông tin còn thiếu; 'yes_no' khi cần người dùng xác nhận có đồng ý gửi hay không; 'choice' khi đưa ra các lựa chọn cụ thể"
+        options:
+          type: array
+          items: {type: string}
+          default: []
+          description: "Danh sách lựa chọn nếu response_type là 'choice'"
+      required: [question]
+
+  - name: timeline
+    description: "Lấy các bài đăng (tweet) gần đây nhất từ một tài khoản cụ thể. DÙNG KHI người dùng muốn xem bài đăng của một cá nhân/tổ chức cụ thể (ví dụ: Sam Altman -> screenname: 'sama', Elon Musk -> screenname: 'elonmusk', Andrej Karpathy -> screenname: 'karpathy'). KHÔNG DÙNG để tìm kiếm bài viết theo chủ đề chung (dùng social_search)."
+    parameters:
+      type: object
+      properties:
+        screenname:
+          type: string
+          description: "Handle Twitter/X của tài khoản, CHỈ ghi tên handle KHÔNG chứa ký tự '@' ở đầu (ví dụ: 'sama', 'elonmusk', 'karpathy')"
+        limit:
+          type: integer
+          default: 5
+          description: "Số lượng bài đăng cần lấy (mặc định 5)"
+      required: [screenname]
+
+  - name: social_search
+    description: "Tìm kiếm bài đăng trên mạng xã hội Twitter/X theo từ khóa hoặc chủ đề. DÙNG KHI tìm kiếm thảo luận cộng đồng theo từ khóa, hashtag, chủ đề chung hoặc xu hướng. KHÔNG DÙNG khi người dùng chỉ định rõ muốn xem timeline của một tài khoản cụ thể."
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          description: "Từ khóa hoặc cụm từ tìm kiếm trên mạng xã hội"
+        search_type:
+          type: string
+          enum: [Latest, Top]
+          default: "Latest"
+          description: "Kiểu sắp xếp kết quả: 'Top' khi người dùng hỏi các bài đăng phổ biến nhất, nổi bật nhất (top/popular); 'Latest' cho các bài đăng mới nhất theo thời gian"
+        limit:
+          type: integer
+          default: 5
+          description: "Số lượng tweet cần lấy (mặc định 5)"
+      required: [query]
+
+  - name: lookup
+    description: "Tìm kiếm thông tin trên internet qua Tavily Search. DÙNG KHI cần tìm kiếm tin tức thời sự, bài báo, bài viết tổng quan hoặc thông tin web. Khi tìm tin tức hôm nay/thời sự, đặt topic='news' và timeframe='day'. KHÔNG DÙNG khi đã có URL cụ thể (hãy dùng fetch) hoặc khi tìm bài báo khoa học arXiv (dùng papers)."
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          description: "Truy vấn tìm kiếm trên web"
+        topic:
+          type: string
+          enum: [general, news]
+          default: "general"
+          description: "Chủ đề tìm kiếm: 'news' cho tin tức báo chí, thời sự hiện tại; 'general' cho tìm kiếm thông tin tổng quát"
+        timeframe:
+          type: string
+          enum: [day, week, month, year]
+          default: "week"
+          description: "Khoảng thời gian: 'day' cho tin hôm nay/24h qua; 'week' cho tuần này; 'month' cho tháng này; 'year' cho năm nay"
+        max_results:
+          type: integer
+          default: 5
+          description: "Số lượng kết quả tối đa cần trả về"
+      required: [query]
+
+  - name: fetch
+    description: "Đọc và trích xuất nội dung bài viết từ một địa chỉ web (URL) cụ thể thông qua Firecrawl Scrape. DÙNG KHI người dùng đã cung cấp đường link cụ thể (bắt đầu bằng http:// hoặc https://). KHÔNG DÙNG khi chưa có URL."
+    parameters:
+      type: object
+      properties:
+        url:
+          type: string
+          description: "Địa chỉ URL đầy đủ của trang web cần đọc"
+      required: [url]
+
+  - name: format
+    description: "Trình bày danh sách các mẩu tin, bài viết hoặc dữ liệu đã thu thập thành bản tin tóm tắt có cấu trúc markdown. DÙNG KHI đã có dữ liệu và cần xuất bản tin theo mẫu."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          default: []
+          description: "Danh sách các item dữ liệu cần format"
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string}
+              source: {type: string}
+              summary: {type: string}
+              section: {type: string}
+        template:
+          type: string
+          enum: [brief, sections, bullets, thread, daily_ai_vn]
+          default: "sections"
+          description: "Mẫu trình bày markdown mong muốn"
+        headline:
+          type: string
+          default: ""
+          description: "Tiêu đề chính của bản tin"
+      required: [items, template]
+
+  # ---------------- Bonus & Extension tools ----------------
+  - name: send
+    description: "Gửi nội dung bản tin hoặc thông báo lên Telegram channel. ĐÂY LÀ HÀNH ĐỘNG GHI CÓ TÁC DỤNG PHỤ. CHỈ ĐƯỢC PHÉP GỌI khi confirmed=True (người dùng đã trực tiếp và rõ ràng xác nhận đồng ý gửi). Nếu người dùng chưa xác nhận rõ ràng, TUYỆT ĐỐI KHÔNG gọi send mà phải gọi clarify với response_type='yes_no' để hỏi xác nhận trước."
+    parameters:
+      type: object
+      properties:
+        text:
+          type: string
+          description: "Nội dung văn bản bản tin gửi lên Telegram"
+        confirmed:
+          type: boolean
+          default: false
+          description: "Chỉ đặt True khi người dùng đã có phát biểu xác nhận rõ ràng đồng ý gửi tin"
+      required: [text]
+
+  - name: policy
+    description: "Tra cứu quy định, chính sách nội bộ của công ty trong Company Policy Handbook. DÙNG KHI người dùng hỏi về quy định nội bộ, policy về dẫn nguồn (source citation), quyền riêng tư dữ liệu (data privacy), quy trình đăng tải (external publishing), hoặc sử dụng công cụ AI."
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          description: "Truy vấn tìm kiếm nội dung chính sách nội bộ"
+        policy_area:
+          type: string
+          enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage]
+          default: "all"
+          description: "Lĩnh vực chính sách cần lọc"
+        top_k:
+          type: integer
+          default: 3
+          description: "Số lượng mục quy định liên quan cần lấy"
+      required: [query]
+
+  - name: papers
+    description: "Tìm kiếm các bài báo khoa học, preprint nghiên cứu trên kho lưu trữ học thuật arXiv. DÙNG KHI người dùng yêu cầu tìm paper, tài liệu nghiên cứu học thuật arXiv theo chủ đề, tác giả hoặc từ khóa khoa học."
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          description: "Từ khóa hoặc tiêu đề nghiên cứu học thuật arXiv"
+        max_results:
+          type: integer
+          default: 5
+          description: "Số lượng bài báo khoa học cần trả về"
+        sort_by:
+          type: string
+          enum: [relevance, lastUpdatedDate, submittedDate]
+          default: "relevance"
+          description: "Tiêu chí sắp xếp: relevance, lastUpdatedDate, submittedDate"
+      required: [query]
+
+  - name: paper_text
+    description: "Tải và trích xuất nội dung text từ file PDF của bài báo khoa học arXiv đã biết ID hoặc URL. DÙNG KHI người dùng cung cấp arXiv ID cụ thể (ví dụ: '1706.03762') và muốn đọc nội dung text các trang của paper."
+    parameters:
+      type: object
+      properties:
+        arxiv_url:
+          type: string
+          description: "arXiv ID (ví dụ: '1706.03762') hoặc URL đầy đủ của bài báo arXiv"
+        max_pages:
+          type: integer
+          default: 5
+          description: "Số trang tối đa cần trích xuất"
+        max_chars:
+          type: integer
+          default: 8000
+          description: "Giới hạn số ký tự tối đa cần lấy"
+      required: [arxiv_url]
+
+  # ---------------- Custom Research Utility Tools (Bonus Point: >3 tools) ----------------
+  - name: summarize
+    description: "Trích xuất tóm tắt ngắn gọn và các điểm cốt lõi từ văn bản bài viết hoặc ghi chú nghiên cứu dài. Hỗ trợ định dạng gạch đầu dòng (bullet_points), danh sách đánh số (numbered), hoặc đoạn văn (paragraph)."
+    parameters:
+      type: object
+      properties:
+        text:
+          type: string
+          description: "Nội dung văn bản cần tóm tắt"
+        style:
+          type: string
+          enum: [bullet_points, numbered, paragraph]
+          default: "bullet_points"
+          description: "Định dạng tóm tắt mong muốn: 'bullet_points', 'numbered', hoặc 'paragraph'"
+        max_points:
+          type: integer
+          default: 5
+          description: "Số lượng ý tóm tắt tối đa"
+      required: [text]
+
+  - name: calculator
+    description: "Tính toán an toàn các phép toán số học, thống kê, tỷ lệ phần trăm hoặc chỉ số tăng trưởng cho dữ liệu nghiên cứu mà không chạy code bên ngoài."
+    parameters:
+      type: object
+      properties:
+        expression:
+          type: string
+          description: "Biểu thức toán học số học cần tính toán, ví dụ: '(350 - 280) / 280 * 100'"
+      required: [expression]
+
+  - name: cross_reference
+    description: "Đối chiếu, kiểm chứng thông tin hoặc mệnh đề nghiên cứu (claim) với nhiều đoạn trích văn bản hoặc nguồn tài liệu khác nhau để xác minh mức độ đồng thuận và độ tin cậy của thông tin."
+    parameters:
+      type: object
+      properties:
+        claim:
+          type: string
+          description: "Mệnh đề hoặc thông tin nghiên cứu cần kiểm chứng đối chiếu"
+        sources:
+          type: array
+          items: {type: string}
+          default: []
+          description: "Danh sách các đoạn văn bản nguồn tài liệu cần đối chiếu"
+      required: [claim]
+
+  - name: export_report
+    description: "Lưu trữ và xuất bản kết quả nghiên cứu, báo cáo hoặc bản tin ra tệp tin định dạng markdown, html, json hoặc text trong thư mục exports/."
+    parameters:
+      type: object
+      properties:
+        content:
+          type: string
+          description: "Nội dung báo cáo hoặc tài liệu nghiên cứu cần lưu"
+        filename:
+          type: string
+          default: "research_report.md"
+          description: "Tên tệp tin cần lưu, ví dụ: 'ai_report_2026.md'"
+        format_type:
+          type: string
+          enum: [markdown, html, json, text]
+          default: "markdown"
+          description: "Định dạng xuất bản của tệp tin"
+      required: [content]

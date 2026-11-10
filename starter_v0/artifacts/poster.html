@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Deep Research AI Agent — 1-Page Poster</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: #f0f4f8; color: #1e293b; padding: 24px; display: flex; justify-content: center; }
+    .poster { width: 100%; max-width: 1080px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); padding: 32px; border-top: 8px solid #2563eb; }
+    header { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; }
+    h1 { font-size: 26px; color: #1e3a8a; margin-bottom: 6px; }
+    .subtitle { font-size: 14px; color: #64748b; font-weight: 500; }
+    .badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; }
+    .card h2 { font-size: 16px; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; }
+    p, li { font-size: 13px; line-height: 1.5; color: #334155; }
+    ul { list-style: none; }
+    li { margin-bottom: 6px; padding-left: 14px; position: relative; }
+    li::before { content: "•"; color: #2563eb; font-weight: bold; position: absolute; left: 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    th { background: #f1f5f9; color: #475569; font-weight: 600; }
+    .tag-custom { background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 11px; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="poster">
+    <header>
+      <h1>🔬 DEEP RESEARCH AI AGENT — POSTER GIỚI THIỆU</h1>
+      <div class="subtitle">Evidence-Driven Research Agent with 14 Tool Integrations, Guardrails & Streamlit Workbench</div>
+      <div class="badge">Accuracy: 100% Base Eval | 100% Group Eval | 108/108 Unit Tests Passed</div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2>🎯 1. Năng lực của Agent</h2>
+        <ul>
+          <li><strong>Thu thập dữ liệu đa kênh:</strong> Khai thác tin tức web (Tavily), trích xuất bài viết (Firecrawl), tìm kiếm bài đăng & timeline Twitter/X, và bài báo học thuật arXiv.</li>
+          <li><strong>An toàn & Bảo mật:</strong> Tra cứu Company Policy Handbook; chốt chặn xác nhận (Human-in-the-loop) bắt buộc trước khi gửi thông tin lên Telegram.</li>
+          <li><strong>Bộ công cụ phân tích nâng cao:</strong> Tự động tóm tắt (summarize), tính toán an toàn (calculator), đối chiếu chéo (cross_reference), và xuất báo cáo (export_report).</li>
+          <li><strong>Giao diện Streamlit UI:</strong> Trò chuyện thời gian thực, trực quan hóa tool execution và dashboard so sánh độ chính xác qua 7 phiên bản.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>⚡ 2. Câu hỏi mẫu để thử nghiệm</h2>
+        <ul>
+          <li><code>Sam Altman tweet:</code> "Tweet mới nhất của Sam Altman là gì?"</li>
+          <li><code>Web News Today:</code> "Tin tức AI hôm nay có gì nổi bật trên web?"</li>
+          <li><code>Company Policy:</code> "Theo policy công ty, tweet viral có được coi là fact đã xác nhận không?"</li>
+          <li><code>Summarize Content:</code> "Tóm tắt giúp mình bài phân tích sau thành các gạch đầu dòng..."</li>
+          <li><code>Safe Calculation:</code> "Tính tốc độ tăng trưởng: (350 - 280) / 280 * 100"</li>
+          <li><code>Guardrail Send:</code> "Đăng bản tin này lên Telegram giúp mình" (kích hoạt clarify xác nhận)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 20px;">
+      <h2>🛠️ 3. Danh mục 14 Công cụ (Core, Bonus, và Custom Tools Mới)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tên Tool</th>
+            <th>Mục đích sử dụng</th>
+            <th>Phân loại</th>
+            <th>Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>clarify</strong></td><td>Hỏi lại người dùng khi thiếu thông tin hoặc cần xác nhận an toàn</td><td>Core</td><td>Có sẵn</td></tr>
+          <tr><td><strong>timeline</strong></td><td>Lấy các tweet gần đây của tài khoản cụ thể (tự chuẩn hóa handle không có @)</td><td>Core</td><td>Có sẵn</td></tr>
+          <tr><td><strong>social_search</strong></td><td>Tìm kiếm bài đăng Twitter theo từ khóa (hỗ trợ phân loại Top / Latest)</td><td>Core</td><td>Có sẵn</td></tr>
+          <tr><td><strong>lookup</strong></td><td>Tìm kiếm web tin tức / thời sự (topic=news/general, timeframe=day/week)</td><td>Core</td><td>Có sẵn</td></tr>
+          <tr><td><strong>fetch</strong></td><td>Đọc và trích xuất nội dung bài viết từ URL cụ thể sang Markdown</td><td>Core</td><td>Có sẵn</td></tr>
+          <tr><td><strong>format</strong></td><td>Định dạng danh sách bài viết thành bản tin digest markdown</td><td>Core</td><td>Có sẵn</td></tr>
+          <tr><td><strong>send</strong></td><td>Gửi bản tin lên Telegram; chỉ thực thi khi confirmed=True</td><td>Bonus</td><td>Có sẵn</td></tr>
+          <tr><td><strong>policy</strong></td><td>Tra cứu chính sách nội bộ (source citation, data privacy, publishing)</td><td>Bonus</td><td>Có sẵn</td></tr>
+          <tr><td><strong>papers</strong></td><td>Tìm kiếm bài báo khoa học và preprint trên arXiv</td><td>Bonus</td><td>Có sẵn</td></tr>
+          <tr><td><strong>paper_text</strong></td><td>Tải PDF arXiv và trích xuất nội dung văn bản trực tiếp</td><td>Bonus</td><td>Có sẵn</td></tr>
+          <tr><td><strong>summarize</strong></td><td>Tóm tắt trích xuất thông minh thành gạch đầu dòng, danh sách số, đoạn văn</td><td>Custom</td><td><span class="tag-custom">Mới 1</span></td></tr>
+          <tr><td><strong>calculator</strong></td><td>Tính toán số học an toàn cho số liệu, tỷ lệ tăng trưởng doanh thu</td><td>Custom</td><td><span class="tag-custom">Mới 2</span></td></tr>
+          <tr><td><strong>cross_reference</strong></td><td>Đối chiếu và kiểm chứng mức độ đồng thuận của mệnh đề giữa các nguồn</td><td>Custom</td><td><span class="tag-custom">Mới 3</span></td></tr>
+          <tr><td><strong>export_report</strong></td><td>Xuất bản báo cáo ra file tĩnh trong thư mục exports/ (Markdown, HTML, JSON)</td><td>Custom</td><td><span class="tag-custom">Mới 4</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      Research Agent Workbench • UI: <code>streamlit run app.py</code> (Port 8501) • Runs & Evidence in <code>runs/</code> and <code>artifacts/version_log.csv</code>
+    </div>
+  </div>
+</body>
+</html>
+
