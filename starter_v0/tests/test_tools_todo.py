@@ -111,12 +111,38 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
 def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+    calc = TOOL_FUNCTIONS["calculator"]
+    res1 = calc(expression="150 * 2 + 50")
+    assert res1["status"] == "success"
+    assert res1["result"] == 350
+
+    res2 = calc(expression="sqrt(144) + 8")
+    assert res2["status"] == "success"
+    assert res2["result"] == 20
 
 
 def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+    calc = TOOL_FUNCTIONS["calculator"]
+    # Empty expression
+    empty_res = calc(expression="")
+    assert empty_res["status"] == "error"
+    assert empty_res["result"] is None
+    assert "Empty expression" in empty_res["error"]
+
+    # Syntax error from model
+    syntax_res = calc(expression="50 + * 2")
+    assert syntax_res["status"] == "error"
+    assert syntax_res["result"] is None
+
+    # Forbidden execution attempt
+    forbidden_res = calc(expression="__import__('os').system('dir')")
+    assert forbidden_res["status"] == "error"
+    assert forbidden_res["result"] is None
 
 
 def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+    calc = TOOL_FUNCTIONS["calculator"]
+    res = calc(expression="100 / 0")
+    assert res["status"] == "error"
+    assert res["result"] is None
+    assert "Division by zero" in res["error"]

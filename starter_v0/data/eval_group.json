@@ -1,7 +1,108 @@
 {
   "dataset_id": "day04_v2_research_group",
   "dataset_role": "group",
-  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "description": "Bộ 10 eval cases do nhóm thiết kế để kiểm tra toàn diện năng lực Agent: 5 single-turn và 5 multi-turn, bao gồm kiểm thử tool mới calculator, routing, boundary send, và out_of_scope.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_calculator_growth",
+      "phase": "B", "suite": "group",
+      "query": "Doanh thu quý này đạt 150, quý trước là 120. Hãy tính phần trăm tăng trưởng giúp mình.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "calculator", "args": {"expression": "(150 - 120) / 120 * 100"}}]},
+      "metadata": {"skill": "calculator_percentage", "difficulty": "medium", "what_it_tests": "Gọi tool mới calculator để tính phần trăm tăng trưởng."}
+    },
+    {
+      "id": "G02_calculator_eval",
+      "phase": "B", "suite": "group",
+      "query": "Tính căn bậc hai của 144 rồi cộng thêm 25",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "calculator", "args": {"expression": "sqrt(144) + 25"}}]},
+      "metadata": {"skill": "calculator_math_func", "difficulty": "easy", "what_it_tests": "Gọi calculator với hàm toán học sqrt."}
+    },
+    {
+      "id": "G03_social_search_top",
+      "phase": "B", "suite": "group",
+      "query": "Cho mình các bài viết nổi bật nhất về Claude 3.7 trên Twitter",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"query": "Claude 3.7", "search_type": "Top"}}]},
+      "metadata": {"skill": "social_search_top", "difficulty": "medium", "what_it_tests": "Tìm bài viết nổi bật nhất trên mạng xã hội -> search_type=Top."}
+    },
+    {
+      "id": "G04_missing_url_article",
+      "phase": "B", "suite": "group",
+      "query": "Đọc bài báo này và rút ra 3 ý chính",
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "text"}}]},
+      "metadata": {"skill": "clarify_missing_url", "difficulty": "easy", "what_it_tests": "Yêu cầu đọc bài báo nhưng không kèm link URL -> phải gọi clarify hỏi lại."}
+    },
+    {
+      "id": "G05_out_of_scope_creative",
+      "phase": "B", "suite": "group",
+      "query": "Hãy làm một bài thơ 4 câu chúc mừng sinh nhật bạn thân",
+      "failure_type": "out_of_scope",
+      "expect": {"no_tool": true},
+      "metadata": {"skill": "no_tool_creative", "difficulty": "easy", "what_it_tests": "Yêu cầu sáng tác thơ ngoài phạm vi tra cứu của agent -> không gọi tool."}
+    },
+    {
+      "id": "G06_multiturn_clarify_then_calc",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tính giá trung bình sản phẩm giúp mình"},
+        {"role": "user", "content": "Sản phẩm có giá 200, 300 và 400 nghìn"},
+        {"role": "user", "content": "Tính trung bình cộng của 3 số đó"}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "calculator", "args": {"expression": "(200 + 300 + 400) / 3"}}]},
+      "metadata": {"skill": "multiturn_calc", "difficulty": "hard", "what_it_tests": "3 turns: hỏi số liệu thiếu sau đó tính toán biểu thức trung bình cộng."}
+    },
+    {
+      "id": "G07_multiturn_missing_handle_fill",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Xem các tweet gần đây của vị giáo sư này"},
+        {"role": "user", "content": "Yann LeCun ấy"},
+        {"role": "user", "content": "Lấy 5 bài mới nhất nhé"}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "ylecun", "limit": 5}}]},
+      "metadata": {"skill": "multiturn_handle_fill", "difficulty": "hard", "what_it_tests": "3 turns: hỏi người cụ thể, map Yann LeCun thành handle ylecun và limit=5."}
+    },
+    {
+      "id": "G08_multiturn_confirm_then_send",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Đăng thông báo họp lên kênh Telegram nhé"},
+        {"role": "user", "content": "Nội dung: Họp team lúc 14h chiều nay"},
+        {"role": "user", "content": "Tôi xác nhận đồng ý, hãy gửi ngay"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "send", "args": {"confirmed": true}}]},
+      "metadata": {"skill": "multiturn_confirm_send", "difficulty": "hard", "what_it_tests": "3 turns: sau khi user xác nhận đồng ý rõ ràng -> gọi send với confirmed=true."}
+    },
+    {
+      "id": "G09_multiturn_switch_tool_to_calc",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm kiếm doanh thu của Nvidia trên web"},
+        {"role": "user", "content": "Thôi không cần tìm nữa, mình có số rồi: 35 tỷ và 26 tỷ"},
+        {"role": "user", "content": "Tính tỷ lệ tăng trưởng giữa 35 và 26 giúp mình"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "calculator", "args": {"expression": "(35 - 26) / 26 * 100"}}]},
+      "metadata": {"skill": "multiturn_switch_to_calc", "difficulty": "hard", "what_it_tests": "3 turns: đổi ý không search web nữa mà chuyển sang dùng calculator."}
+    },
+    {
+      "id": "G10_multiturn_refine_topic_news",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tin tức AI mới nhất"},
+        {"role": "user", "content": "Chỉ lấy tin tức trong ngày hôm nay"},
+        {"role": "user", "content": "Tập trung vào mảng robotics"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"query": "robotics", "topic": "news", "timeframe": "day"}}]},
+      "metadata": {"skill": "multiturn_refine_news", "difficulty": "hard", "what_it_tests": "3 turns: thu hẹp chủ đề thành robotics và giữ timeframe=day."}
+    }
+  ]
 }
