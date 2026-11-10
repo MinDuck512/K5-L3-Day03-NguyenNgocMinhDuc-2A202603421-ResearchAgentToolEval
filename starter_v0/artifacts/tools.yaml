@@ -14,6 +14,15 @@
 #   - Make the `send` confirmation boundary explicit.
 #   - Declare your new tool(s) at the end of this file.
 tools:
+  - name: source_validator
+    description: "Validate HTTP(S) URL structure and check citation title/author completeness. Use when checking a source citation; do not use to fetch a page or claim its contents are trustworthy."
+    parameters:
+      type: object
+      properties:
+        url: {type: string, description: "Complete HTTP or HTTPS source URL"}
+        title: {type: string, default: "", description: "Source title if known"}
+        author: {type: string, default: "", description: "Source author if known"}
+      required: [url]
   # ---------------- Core tools ----------------
   - name: clarify
     description: "Gửi một câu hỏi cho người dùng."
