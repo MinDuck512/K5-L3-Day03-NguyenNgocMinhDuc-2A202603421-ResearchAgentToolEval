@@ -39,6 +39,12 @@ class ResearchAgent:
         )
         results: list[dict[str, Any]] = []
         for call in response.tool_calls:
+            # Evaluation must never publish externally, even if a model invents approval.
+            if call.name == "send":
+                results.append({"tool": "send", "args": call.args, "result": {
+                    "status": "action_disabled", "message": "Evaluation never sends Telegram messages."
+                }})
+                continue
             func = TOOL_FUNCTIONS.get(call.name)
             if not func:
                 results.append({"tool": call.name, "error": "unknown_tool"})
