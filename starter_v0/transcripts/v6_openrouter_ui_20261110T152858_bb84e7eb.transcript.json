@@ -1,0 +1,25 @@
+{
+  "transcript_id": "v6_openrouter_ui_20261110T152858_bb84e7eb",
+  "version": "v6",
+  "artifact_version": "v6+pa76229a38908+tc6f07289959a",
+  "prompt_hash": "a76229a38908ff99d993c5969e6c3327d79d2d7dc8f9135c0122c747a01077dd",
+  "tools_hash": "c6f07289959a55b869f42c8a2f70f010d385caed2f07706a615937ee74daa441",
+  "provider": "openrouter",
+  "model": "nvidia/nemotron-3.5-lightning:free",
+  "source": "streamlit",
+  "created_at": "2026-11-10T15:28:58",
+  "system_prompt": "D:\\VinAI\\Day03-Prompt-Engineering-Tool-Calling-Labs-student-main\\Day03-Prompt-Engineering-Tool-Calling-Labs-student-main\\starter_v0\\artifacts\\versions\\v6\\system_prompt.md",
+  "tools": "D:\\VinAI\\Day03-Prompt-Engineering-Tool-Calling-Labs-student-main\\Day03-Prompt-Engineering-Tool-Calling-Labs-student-main\\starter_v0\\artifacts\\versions\\v6\\tools.yaml",
+  "turns": [
+    {
+      "turn_index": 1,
+      "user": "hôm nay là ngày bao nhiêu",
+      "started_at": "2026-11-10T15:29:17",
+      "status": "provider_error",
+      "assistant_text": "Provider hết hạn mức hoặc bị giới hạn tốc độ (HTTP 429). Thử lại khi quota được đặt lại, hoặc chọn provider còn hạn mức.",
+      "tool_events": [],
+      "ended_at": "2026-11-10T15:29:18"
+    }
+  ],
+  "updated_at": "2026-11-10T15:29:18"
+}

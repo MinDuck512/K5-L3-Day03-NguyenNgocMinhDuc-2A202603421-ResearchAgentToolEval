@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from agent import ResearchAgent
 from env_loader import load_lab_env
 from providers import make_provider
 from tools import TOOL_FUNCTIONS, load_tool_declarations, to_openai_tools
-from versioning import artifact_version_dict, build_artifact_version
+from versioning import artifact_version_dict, build_artifact_version, file_hash
 
 
 ROOT = Path(__file__).parent
@@ -259,6 +261,61 @@ def print_table(results: list[dict[str, Any]], summary: dict[str, Any]) -> None:
         print(f"{key}: {value}")
 
 
+def retry_wait_seconds(exc: Exception) -> float:
+    """Read retry timing without relying on provider-specific exception classes."""
+    waits = [0.0]
+    response = getattr(exc, "response", None)
+    headers = getattr(response, "headers", {}) or {}
+    retry_after = headers.get("Retry-After") or headers.get("retry-after")
+    try:
+        value = float(retry_after)
+        if math.isfinite(value):
+            waits.append(value)
+    except (TypeError, ValueError):
+        pass
+    details = getattr(exc, "details", None)
+    if isinstance(details, dict):
+        error = details.get("error", details)
+        if isinstance(error, dict):
+            for item in error.get("details", []) or []:
+                if isinstance(item, dict) and str(item.get("@type", "")).endswith("RetryInfo"):
+                    match = re.fullmatch(r"(\d+(?:\.\d+)?)s", str(item.get("retryDelay", "")))
+                    if match:
+                        waits.append(float(match.group(1)) + 1.0)
+    return max(waits)
+
+
+def call_with_retries(
+    call: Callable[[], Any], *, max_retries: int, retry_delay: float,
+    retry_events: list[dict[str, Any]],
+    max_retry_wait: float = 60.0,
+) -> Any:
+    for attempt in range(max_retries + 1):
+        try:
+            return call()
+        except Exception as exc:
+            response = getattr(exc, "response", None)
+            status = getattr(exc, "status_code", None) or getattr(exc, "code", None) or getattr(response, "status_code", None)
+            if status not in {429, 500, 502, 503, 504} or attempt == max_retries:
+                raise
+            delay = max(retry_delay * (2 ** attempt), retry_wait_seconds(exc))
+            if delay > max_retry_wait:
+                retry_events.append({
+                    "status": status, "retry": attempt + 1, "wait_seconds": delay,
+                    "skipped": True, "reason": "retry_wait_exceeds_limit",
+                })
+                print(f"  Provider HTTP {status}; requested wait {delay:.1f}s exceeds limit {max_retry_wait:.1f}s; recording failure", flush=True)
+                raise
+            retry_events.append({"status": status, "retry": attempt + 1, "wait_seconds": delay})
+            print(f"  Provider HTTP {status}; retry {attempt + 1}/{max_retries} in {delay:.1f}s", flush=True)
+            # Keep individual waits short, including long server-directed delays.
+            remaining = delay
+            while remaining > 0:
+                interval = min(remaining, 30.0)
+                time.sleep(interval)
+                remaining -= interval
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run Research Agent live evals.")
     parser.add_argument("--phase", choices=["B"], default="B")
@@ -270,7 +327,15 @@ def main() -> None:
     parser.add_argument("--tools", type=Path, default=ARTIFACTS_DIR / "tools.yaml")
     parser.add_argument("--eval-cases", type=Path, default=DATA_DIR / "eval_base.json")
     parser.add_argument("--runs-dir", type=Path, default=ROOT / "runs")
+    parser.add_argument("--resume", type=Path, help="Reuse measured cases from a matching partial run; retry only provider errors.")
+    parser.add_argument("--stop-on-provider-error", action="store_true", help="Save the checkpoint and stop instead of exhausting quota on remaining cases.")
+    parser.add_argument("--request-interval", type=float, default=0.0, help="Seconds between eval cases; use 15 for a 5 RPM quota.")
+    parser.add_argument("--max-retries", type=int, default=0, help="Retries per case for transient HTTP 429/5xx errors.")
+    parser.add_argument("--retry-delay", type=float, default=15.0, help="Initial retry delay in seconds; doubles after each retry.")
+    parser.add_argument("--max-retry-wait", type=float, default=60.0, help="Record failure instead of waiting longer than this many seconds for a retry.")
     args = parser.parse_args()
+    if args.max_retries < 0 or any(not math.isfinite(value) or value < 0 for value in [args.request_interval, args.retry_delay, args.max_retry_wait]):
+        parser.error("Request interval, retry count, and retry delay must be finite and nonnegative.")
 
     system_prompt = args.system_prompt.read_text(encoding="utf-8")
     artifact_version = build_artifact_version(args.version, args.system_prompt, args.tools)
@@ -286,12 +351,64 @@ def main() -> None:
     openai_tools = to_openai_tools(tool_declarations)
 
     results: list[dict[str, Any]] = []
-    for case in cases:
+    resumed_from = None
+    if args.resume:
+        prior = json.loads(args.resume.read_text(encoding="utf-8"))
+        expected_identity = {"version": args.version, "provider": args.provider, "model": selected_model,
+                             "suite": args.suite, "phase": args.phase,
+                             "prompt_hash": artifact_version.prompt_hash, "tools_hash": artifact_version.tools_hash}
+        if any(prior.get(key) != value for key, value in expected_identity.items()):
+            parser.error("Resume requires the same version, provider, model, suite, phase and artifact hashes")
+        by_id = {case["id"]: case for case in cases}
+        for item in prior["results"]:
+            current = by_id.get(item["id"])
+            if current is None or item["expect"] != current["expect"] or item["input"] != (current.get("input") or current.get("query") or current.get("turns")):
+                parser.error("Resume dataset differs from the original run")
+            if item["result"].get("failure_type") != "provider_error":
+                results.append(item)
+        resumed_from = str(args.resume)
+    retained_ids = {item["id"] for item in results}
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%dT%H%M%S%f")
+    run_id = "_".join(map(safe_slug, [args.version, args.phase, args.suite, args.provider, timestamp]))
+    args.runs_dir.mkdir(parents=True, exist_ok=True)
+    out_path = args.runs_dir / f"{run_id}.json"
+
+    def checkpoint() -> None:
+        order = {case["id"]: index for index, case in enumerate(cases)}
+        results.sort(key=lambda item: order[item["id"]])
+        payload = {
+            "run_id": run_id, **artifact_version_dict(artifact_version), "phase": args.phase, "suite": args.suite,
+            "provider": args.provider, "model": selected_model, "system_prompt": str(args.system_prompt),
+            "tools": str(args.tools), "eval_cases": str(args.eval_cases), "dataset_hash": file_hash(args.eval_cases),
+            **dataset_info, "generated_at": now.isoformat(timespec="seconds"), "updated_at": datetime.now().isoformat(timespec="seconds"),
+            "dataset_total_cases": len(cases), "summary": summarize(results), "resumed_from": resumed_from,
+            "execution": {"request_interval_seconds": args.request_interval, "max_retries": args.max_retries,
+                          "retry_delay_seconds": args.retry_delay, "max_retry_wait_seconds": args.max_retry_wait,
+                          "send_enabled": False}, "results": results,
+        }
+        out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+
+    for case_index, case in enumerate(cases):
+        if case["id"] in retained_ids:
+            continue
+        if case_index and args.request_interval:
+            remaining = args.request_interval
+            while remaining > 0:
+                interval = min(remaining, 30.0)
+                time.sleep(interval)
+                remaining -= interval
         print(f"Running {case['id']}...", flush=True)
         agent = ResearchAgent(provider, system_prompt=system_prompt, tools=openai_tools, model=args.model)
+        retry_events: list[dict[str, Any]] = []
         try:
             tool_choice = None if case["expect"].get("no_tool") else "required"
-            run = agent.run(case_messages(case), tool_choice=tool_choice)
+            run = call_with_retries(
+                lambda: agent.run(case_messages(case), tool_choice=tool_choice),
+                max_retries=args.max_retries, retry_delay=args.retry_delay,
+                retry_events=retry_events,
+                max_retry_wait=args.max_retry_wait,
+            )
             calls = [{"name": call.name, "args": call.args} for call in run.tool_calls]
             result = evaluate_phase_b(case, calls, run.text)
             tool_results = run.tool_results
@@ -320,39 +437,14 @@ def main() -> None:
             "expect": case["expect"],
             "result": result,
             "tool_results": tool_results,
+            "provider_retries": retry_events,
         })
+        checkpoint()
+        if args.stop_on_provider_error and result.get("failure_type") == "provider_error":
+            break
 
     summary = summarize(results)
-    args.runs_dir.mkdir(parents=True, exist_ok=True)
-    now = datetime.now()
-    generated_at = now.isoformat(timespec="seconds")
-    timestamp = now.strftime("%Y%m%dT%H%M%S%f")
-    run_id = "_".join([
-        safe_slug(args.version),
-        safe_slug(args.phase),
-        safe_slug(args.suite),
-        safe_slug(args.provider),
-        timestamp,
-    ])
-    payload = {
-        "run_id": run_id,
-        "version": args.version,
-        **artifact_version_dict(artifact_version),
-        "phase": args.phase,
-        "suite": args.suite,
-        "provider": args.provider,
-        "model": selected_model,
-        "system_prompt": str(args.system_prompt),
-        "tools": str(args.tools),
-        "eval_cases": str(args.eval_cases),
-        **dataset_info,
-        "generated_at": generated_at,
-        "summary": summary,
-        "results": results,
-    }
-
-    out_path = args.runs_dir / f"{run_id}.json"
-    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    checkpoint()
     print_table(results, summary)
     print(f"\nArtifact version: {artifact_version.artifact_version}")
     print(f"\nSaved: {out_path}")

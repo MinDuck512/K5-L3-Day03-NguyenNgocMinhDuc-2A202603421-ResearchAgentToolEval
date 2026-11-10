@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
 
 import requests
 
-from tools._shared import TIMEOUT, err
+from tools._shared import TIMEOUT, err, bounded_int, nonempty
 
 
 def _twitter_get(path: str, params: dict[str, Any]) -> dict[str, Any]:
@@ -40,11 +41,15 @@ def _tweet_item(raw: dict[str, Any]) -> dict[str, Any]:
 def _tweets_from(data: dict[str, Any], limit: int) -> list[dict[str, Any]]:
     raw_items = data.get("timeline") or data.get("tweets") or []
     items = [_tweet_item(item) for item in raw_items if item.get("tweet_id") or item.get("id")]
-    return items[: int(limit or 5)]
+    return items[:limit]
 
 
 def get_user_tweets(screenname: str = "", limit: int = 5) -> dict[str, Any]:
     try:
+        screenname = nonempty(screenname, "screenname").lstrip("@")
+        if not re.fullmatch(r"[A-Za-z0-9_]{1,15}", screenname):
+            raise ValueError("screenname must be a handle, not a display name or URL")
+        limit = bounded_int(limit, "limit", 1, 100)
         data = _twitter_get("/timeline.php", {"screenname": screenname})
         return {"tool": "get_user_tweets", "screenname": screenname, "items": _tweets_from(data, limit)}
     except Exception as exc:

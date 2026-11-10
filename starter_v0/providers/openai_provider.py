@@ -4,6 +4,8 @@ import json
 import os
 from typing import Any
 
+import requests
+
 from providers.base import ModelResponse, ToolCall
 
 
@@ -32,16 +34,10 @@ class OpenAIProvider:
         temperature: float = 0.0,
         tool_choice: Any | None = None,
     ) -> ModelResponse:
-        try:
-            from openai import OpenAI
-        except ImportError as exc:
-            raise RuntimeError("Install live provider dependency first: pip install openai") from exc
-
         api_key = os.getenv(self.api_key_env) or self.api_key_default
         if not api_key:
             raise RuntimeError(f"Missing API key env var: {self.api_key_env}")
 
-        client = OpenAI(api_key=api_key, base_url=self.base_url)
         kwargs: dict[str, Any] = {
             "model": model or self.default_model,
             "messages": messages,
@@ -52,18 +48,59 @@ class OpenAIProvider:
         if tool_choice is not None:
             kwargs["tool_choice"] = tool_choice
 
-        resp = client.chat.completions.create(**kwargs)
-        msg = resp.choices[0].message
+        try:
+            from openai import OpenAI
+
+            client = OpenAI(api_key=api_key, base_url=self.base_url, timeout=60.0, max_retries=0)
+            resp = client.chat.completions.create(**kwargs)
+        except ImportError as exc:
+            if "application control policy has blocked" not in str(exc).lower():
+                raise RuntimeError("Install live provider dependency first: pip install openai") from exc
+        else:
+            return self._normalize_response(resp.model_dump(), raw=resp)
+
+        # Windows may block the SDK's native JSON extension. Use the same
+        # REST endpoint without loading that extension or changing OS policy.
+        base_url = self.base_url or os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1"
+        response = requests.post(
+            f"{base_url.rstrip('/')}/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json=kwargs,
+            timeout=(10, 60),
+        )
+        try:
+            response.raise_for_status()
+        except requests.HTTPError:
+            # Report the machine-readable code, not an error message that may
+            # echo a credential. Keep the original response for diagnostics.
+            error_code = None
+            try:
+                error = response.json().get("error")
+                if isinstance(error, dict):
+                    error_code = error.get("code")
+            except (ValueError, AttributeError):
+                pass
+            raise requests.HTTPError(
+                f"Model API HTTP {response.status_code} ({error_code or 'request_failed'}).",
+                response=response,
+            ) from None
+        payload = response.json()
+        return self._normalize_response(payload, raw=payload)
+
+    @staticmethod
+    def _normalize_response(payload: dict[str, Any], *, raw: Any) -> ModelResponse:
+        msg = payload["choices"][0]["message"]
         calls: list[ToolCall] = []
-        for call in msg.tool_calls or []:
-            raw_args = call.function.arguments or "{}"
+        for call in msg.get("tool_calls") or []:
+            function = call["function"]
+            raw_args = function.get("arguments") or "{}"
             try:
                 args = json.loads(raw_args)
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, TypeError):
                 # Small models often emit malformed JSON. Keep the call so eval grades it
                 # as a wrong-argument failure instead of hiding it as provider_error.
                 args = {"_invalid_json_arguments": raw_args}
             if not isinstance(args, dict):
                 args = {"_invalid_json_arguments": raw_args}
-            calls.append(ToolCall(name=call.function.name, args=args))
-        return ModelResponse(text=msg.content, tool_calls=calls, raw=resp)
+            calls.append(ToolCall(name=function["name"], args=args))
+        return ModelResponse(text=msg.get("content"), tool_calls=calls, raw=raw)

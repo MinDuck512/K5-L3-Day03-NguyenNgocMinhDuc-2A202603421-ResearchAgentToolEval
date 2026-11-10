@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 from typing import Any
 
@@ -76,7 +75,7 @@ class GeminiProvider:
         default_model: str = "gemini-3.5-flash",
     ) -> None:
         self.api_key_env = api_key_env
-        self.default_model = default_model
+        self.default_model = os.getenv("GEMINI_MODEL", default_model)
 
     def complete(
         self,
@@ -104,6 +103,11 @@ class GeminiProvider:
             config_kwargs["system_instruction"] = system_instruction
         if declarations:
             config_kwargs["tools"] = [types.Tool(function_declarations=declarations)]
+            modes = {"required": "ANY", "auto": "AUTO", "none": "NONE"}
+            if isinstance(tool_choice, str) and tool_choice in modes:
+                config_kwargs["tool_config"] = types.ToolConfig(
+                    function_calling_config=types.FunctionCallingConfig(mode=modes[tool_choice])
+                )
 
         client = genai.Client(api_key=api_key)
         resp = client.models.generate_content(
@@ -130,16 +134,10 @@ class GeminiProvider:
                 if function_call:
                     append_call(function_call)
 
-        # Some SDK versions expose function calls directly on the response.
-        for function_call in getattr(resp, "function_calls", []) or []:
-            append_call(function_call)
+        # The convenience property mirrors candidate parts. Use it only as a fallback,
+        # preserving genuinely repeated model calls so eval can detect them.
+        if not calls:
+            for function_call in getattr(resp, "function_calls", []) or []:
+                append_call(function_call)
 
-        deduped_calls: list[ToolCall] = []
-        seen: set[tuple[str, str]] = set()
-        for call in calls:
-            key = (call.name, json.dumps(call.args, ensure_ascii=False, sort_keys=True))
-            if key not in seen:
-                seen.add(key)
-                deduped_calls.append(call)
-
-        return ModelResponse(text="\n".join(part for part in text_parts if part) or None, tool_calls=deduped_calls, raw=resp)
+        return ModelResponse(text="\n".join(part for part in text_parts if part) or None, tool_calls=calls, raw=resp)

@@ -42,34 +42,40 @@ Bonus:
 
 Đánh dấu khi xong. Mỗi dòng trỏ tới file cần sửa và bằng chứng cần nộp.
 
+Trạng thái cập nhật và các mục còn chờ quota: [TODO_STATUS](starter_v0/analysis/TODO_STATUS.md).
+UI local: http://localhost:8501. Từ `starter_v0/` trong virtualenv đã cài dependencies, chạy `python -m streamlit run app.py`.
+Chạy tiếp eval bằng `python scripts/complete_lab.py`; chat live bằng `python chat.py --provider openrouter --version v6`; cập nhật báo cáo bằng `python scripts/build_report.py`.
+Snapshot v1–v6 đã có; chưa đánh dấu hoàn thành thí nghiệm nếu thiếu run thật.
+Trong `analysis/`, chỉ cần xem `TODO_STATUS.md`, `all_runs.csv`, `all_failures.csv` và `pytest.xml`. Ghi chú và kết quả kiểm tra cũ được gom vào `analysis/history/` để đối chiếu khi cần.
+
 **Setup**
-- [ ] `.env` có provider key + `TAVILY_API_KEY`, `FIRECRAWL_API_KEY`, `RAPIDAPI_KEY`
-- [ ] `python scripts/preflight_provider.py --provider openrouter` pass
-- [ ] `pytest` chạy được: contract test + example test xanh, TODO test đang `skipped`
+- [x] `.env` có provider key + `TAVILY_API_KEY`, `FIRECRAWL_API_KEY`, `RAPIDAPI_KEY`
+- [x] `python scripts/preflight_provider.py --provider openrouter --model nvidia/nemotron-3.5-lightning:free` pass
+- [x] `pytest` chạy được: contract + example + TODO tests xanh; 148 passed, 0 skipped (xem `analysis/pytest.xml`)
 
 **Prompt & tool declaration**
-- [ ] Chạy baseline `v0`, ghi vào `artifacts/version_log.csv`
-- [ ] Liệt kê các case FAIL của `v0` và gán mỗi case một loại lỗi (`wrong_tool`, `wrong_arg_value`, `missing_info`...)
-- [ ] `artifacts/system_prompt.md`: bỏ các chỉ dẫn xấu cố ý của starter (đoán thay vì hỏi, gửi không cần xác nhận, ép một bước)
-- [ ] `artifacts/system_prompt.md`: thêm rule routing (khi nào `timeline` / `social_search` / `lookup` / `fetch` / `clarify`)
-- [ ] `artifacts/tools.yaml`: viết lại `description` mỗi tool: làm gì, **khi nào dùng / khi nào không dùng**
-- [ ] `artifacts/tools.yaml`: mô tả rõ convention args (handle không có `@`, `topic=news` cho tin tức, `timeframe`, `search_type=Top|Latest`)
-- [ ] `artifacts/tools.yaml`: `send` mô tả rõ chỉ gửi khi user đã xác nhận (`confirmed=true`)
+- [x] Chạy baseline `v0`, ghi vào `artifacts/version_log.csv`
+- [x] Liệt kê các case FAIL của `v0` và gán mỗi case một loại lỗi (`wrong_tool`, `wrong_arg_value`, `missing_info`...)
+- [x] `artifacts/system_prompt.md`: bỏ các chỉ dẫn xấu cố ý của starter (đoán thay vì hỏi, gửi không cần xác nhận, ép một bước)
+- [x] `artifacts/system_prompt.md`: thêm rule routing (khi nào `timeline` / `social_search` / `lookup` / `fetch` / `clarify`)
+- [x] `artifacts/tools.yaml`: viết lại `description` mỗi tool: làm gì, **khi nào dùng / khi nào không dùng**
+- [x] `artifacts/tools.yaml`: mô tả rõ convention args (handle không có `@`, `topic=news` cho tin tức, `timeframe`, `search_type=Top|Latest`)
+- [x] `artifacts/tools.yaml`: `send` mô tả rõ chỉ gửi khi user đã xác nhận (`confirmed=true`)
 - [ ] `v1`, `v2`, `v3`: mỗi version **một** giả thuyết, metric trước/sau trong `version_log.csv`
 
 **Tool mới**
-- [ ] `tools/<tên>/tool.py` + `TOOL.md` (frontmatter đúng contract trong `tools/README.md`)
-- [ ] Đăng ký trong `tools/__init__.py` (`TOOL_FUNCTIONS`) và `artifacts/tools.yaml`
-- [ ] Unit test cho tool mới trong `tests/test_tools_todo.py` (≥ 3 test)
-- [ ] Ít nhất 1 eval case trong `data/eval_group.json` kiểm tra model có route tới tool mới đúng lúc
+- [x] `tools/<tên>/tool.py` + `TOOL.md` (frontmatter đúng contract trong `tools/README.md`): `source_audit`
+- [x] Đăng ký trong `tools/__init__.py` (`TOOL_FUNCTIONS`) và `artifacts/tools.yaml`
+- [x] Unit test cho tool mới trong `tests/test_tools_todo.py` (≥ 3 test)
+- [x] Ít nhất 1 eval case trong `data/eval_group.json` kiểm tra model có route tới tool mới đúng lúc: G01/GM04 (đã viết; chờ đo live)
 
 **Testing**
-- [ ] `data/eval_group.json`: case cho model (routing / args / boundary), xem Step 4
-- [ ] `tests/test_tools_todo.py`: unit test cho code của tool, xem Step 4b
-- [ ] `pytest`: 0 failed, 0 skipped
+- [x] `data/eval_group.json`: 10 case cho model, 5 single + 5 multi (routing / args / boundary), xem Step 4; chờ chạy live
+- [x] `tests/test_tools_todo.py`: unit test cho code của tool, xem Step 4b
+- [x] `pytest`: 0 failed, 0 skipped
 
 **Demo & report**
-- [ ] UI chạy được + link dùng thử
+- [x] UI chạy được + link dùng thử local http://localhost:8501 (link public cho team khác còn thiếu)
 - [ ] `chat.py`: ≥ 3 lượt live, có transcript
 - [ ] `artifacts/REPORT.md` Phần A trước 16:30, Phần B trước khi nộp
 
@@ -108,7 +114,12 @@ starter_v0/
   company_policy/             # local markdown KB for bonus policy tool
   providers/                  # OpenRouter/OpenAI/Anthropic/Gemini/Ollama (local) adapters
   scripts/preflight_provider.py
-  samples/                    # mock format examples (transcript, run-analysis, version_log)
+  analysis/
+    TODO_STATUS.md              # checklist hiện tại
+    all_runs.csv                # bảng tổng hợp các run thật
+    all_failures.csv            # phân loại lỗi
+    pytest.xml                  # bằng chứng unit test
+    history/                    # ghi chú và phân tích cũ
 ```
 
 ## Tool Tracks

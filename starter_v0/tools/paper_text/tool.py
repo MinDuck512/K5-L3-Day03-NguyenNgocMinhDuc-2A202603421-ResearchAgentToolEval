@@ -8,7 +8,7 @@ from typing import Any
 
 import requests
 
-from tools._shared import ROOT, TIMEOUT, err
+from tools._shared import ROOT, TIMEOUT, err, bounded_int, nonempty
 
 
 ARXIV_DIR = ROOT / "arxiv_papers"
@@ -29,7 +29,7 @@ def _rate_limit_arxiv() -> None:
 
 
 def _arxiv_id(value: str) -> str:
-    match = re.search(r"(\d{4}\.\d{4,5}(?:v\d+)?)", value or "")
+    match = re.fullmatch(r"(?:https?://(?:export\.)?arxiv\.org/(?:abs|pdf)/)?(\d{4}\.\d{4,5}(?:v\d+)?)(?:\.pdf)?/?", nonempty(value, "arxiv_url"))
     if not match:
         raise ValueError("Invalid arXiv ID or URL")
     return match.group(1)
@@ -67,9 +67,10 @@ def _extract_pdf_text(pdf_path: Path, max_pages: int) -> tuple[str, int]:
 
 def get_arxiv_paper_text(arxiv_url: str = "", max_pages: int = 5, max_chars: int = 8000) -> dict[str, Any]:
     try:
+        max_pages = bounded_int(max_pages, "max_pages", 1, 100)
+        max_chars = bounded_int(max_chars, "max_chars", 1, 20000)
         arxiv_id, pdf_path, pdf_url = _download_arxiv_pdf(arxiv_url)
         text, page_count = _extract_pdf_text(pdf_path, max_pages=max_pages)
-        max_chars = max(1000, min(int(max_chars or 8000), 20000))
         excerpt = text[:max_chars]
         txt_path = pdf_path.with_suffix(".txt")
         txt_path.write_text(excerpt, encoding="utf-8")
