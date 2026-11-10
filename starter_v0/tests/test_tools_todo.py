@@ -111,12 +111,19 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
 def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+    result = TOOL_FUNCTIONS["source_validator"]("https://arxiv.org/abs/1706.03762", "Attention Is All You Need", "Vaswani et al.")
+    assert result["valid"] is True
+    assert result["category"] == "academic"
+    assert result["citation_complete"] is True
 
 
 def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+    result = TOOL_FUNCTIONS["source_validator"]("javascript:alert(1)")
+    assert result["valid"] is False
+    assert "error" in result
 
 
 def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+    result = TOOL_FUNCTIONS["source_validator"](None)  # type: ignore[arg-type]
+    assert result["valid"] is False
+    assert "error" in result
