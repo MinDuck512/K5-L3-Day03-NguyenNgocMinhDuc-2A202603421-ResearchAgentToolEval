@@ -1,0 +1,13 @@
+﻿case_id,case_category,observed_mismatch,actual_tool_calls,finding,run_file
+R03_web_news_routing,wrong_tool,wrong_arg_value,"[{""name"": ""lookup"", ""args"": {""timeframe"": ""day"", ""query"": ""AI news artificial intelligence"", ""topic"": ""news""}}]","query: expected 'AI', got 'AI news artificial intelligence'",runs/v0_B_base_gemini_20261110T104008494545.json
+R07_search_type_arg,wrong_arg_value,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+R08_out_of_scope,out_of_scope,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+R09_no_tool_capability,unnecessary_tool,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+R10_missing_handle,missing_info,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+R11_missing_url,missing_info,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+R12_confirm_before_send,wrong_boundary,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+R13_parallel_web_and_tweets,wrong_tool,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+R14_out_of_scope_coding,out_of_scope,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+M01_clarify_then_fill,missing_info,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+M02_carryover_timeframe,wrong_arg_value,provider_error,[],Gemini HTTP 429: per-minute request quota exceeded,runs/v0_B_base_gemini_20261110T104008494545.json
+M05_correction_limit,wrong_arg_value,provider_error,[],Gemini HTTP 503: service temporarily unavailable,runs/v0_B_base_gemini_20261110T104008494545.json
