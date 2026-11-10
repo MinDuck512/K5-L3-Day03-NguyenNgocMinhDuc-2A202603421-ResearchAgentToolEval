@@ -85,6 +85,7 @@ Phân tích nguyên nhân gốc rễ (root cause) của 6 ca thất bại trong 
 | `R13_parallel_web_and_tweets` | `wrong_arg_value` | `lookup(query='AI news', topic=None)` | Sai tham số truy vấn và thiếu phân loại `topic="news"` | Thiếu định nghĩa rõ ràng về conventions trong `tools.yaml`. Khắc phục: chuẩn hóa description cho `lookup` và `social_search`. |
 | `R14_out_of_scope_coding` | `out_of_scope` | Gọi nhầm tool tra cứu code | Gọi tool thay vì từ chối viết mã Python Fibonacci | Prompt v0 ép gọi tool cho mọi yêu cầu. Khắc phục: phân định ranh giới nhiệm vụ nghiên cứu, từ chối coding tasks. |
 
+
 ## B3. Team Eval Cases
 
 10 ca kiểm thử chuyên sâu được thiết kế và bổ sung vào `data/eval_group.json` (5 single-turn và 5 multi-turn):
