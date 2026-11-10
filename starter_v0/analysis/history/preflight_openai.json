@@ -1,0 +1,13 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "key_env": "OPENAI_API_KEY",
+  "key_configured": true,
+  "status": "failed",
+  "http_status": 429,
+  "error_code": "credit_balance_exhausted",
+  "command": ".\\.venv\\Scripts\\python.exe scripts/preflight_provider.py --provider openai --model gpt-4o-mini",
+  "note": "Retested using the currently saved OpenAI key after the user reported adding a new key. OpenAI still reports organization credit balance exhausted. No v0/v1 eval was started.",
+  "rechecked_after_user_key_update": true,
+  "active_openai_config_entries": 1
+}

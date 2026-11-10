@@ -1,0 +1,116 @@
+{
+  "provider": "openrouter",
+  "key_configured": true,
+  "daily_free_request_quota": {
+    "used": 1,
+    "limit": 50,
+    "remaining": 49
+  },
+  "is_free_tier": true,
+  "candidates": [
+    {
+      "id": "nvidia/nemotron-3.5-lightning:free",
+      "prompt_price": "0",
+      "completion_price": "0",
+      "supports_tools": true,
+      "supports_tool_choice": true
+    },
+    {
+      "id": "nvidia/nemotron-3.5-super-vl:free",
+      "prompt_price": "0",
+      "completion_price": "0",
+      "supports_tools": true,
+      "supports_tool_choice": true
+    }
+  ],
+  "status": "v0_v1_complete",
+  "selected_model": "nvidia/nemotron-3.5-lightning:free",
+  "preflight": {
+    "status": "passed",
+    "tool": "timeline",
+    "args": {
+      "limit": 1,
+      "screenname": "sama"
+    }
+  },
+  "quota_note": "The saved quota was checked before the fixed-model preflight and eval; recheck remaining quota before v1.",
+  "baseline_run": "runs/v0_B_base_openrouter_20261110T124056248410.json",
+  "quota_before_v1": {
+    "used": 21,
+    "limit": 50,
+    "remaining": 29
+  },
+  "baseline_summary": {
+    "total_cases": 20,
+    "measured_cases": 20,
+    "provider_error_cases": 0,
+    "passed_cases": 12,
+    "case_accuracy": 0.6,
+    "tool_routing_accuracy": 0.75,
+    "argument_accuracy": 0.6,
+    "multiturn_accuracy": 0.6667,
+    "failure_counts": {
+      "wrong_tool": 2,
+      "out_of_scope": 1,
+      "missing_info": 2,
+      "wrong_boundary": 1,
+      "wrong_arg_value": 2
+    },
+    "observed_mismatch_counts": {
+      "wrong_arg_value": 4,
+      "unexpected_tool_call": 1,
+      "missing_tool_call": 3
+    }
+  },
+  "baseline_tool_errors": [],
+  "v1_run": "runs/v1_B_base_openrouter_20261110T124451769886.json",
+  "quota_after_v1": {
+    "used": 40,
+    "limit": 50,
+    "remaining": 10
+  },
+  "v1_summary": {
+    "total_cases": 20,
+    "measured_cases": 20,
+    "provider_error_cases": 0,
+    "passed_cases": 13,
+    "case_accuracy": 0.65,
+    "tool_routing_accuracy": 0.9,
+    "argument_accuracy": 0.65,
+    "multiturn_accuracy": 0.6667,
+    "failure_counts": {
+      "wrong_tool": 3,
+      "unnecessary_tool": 1,
+      "wrong_boundary": 1,
+      "wrong_arg_value": 2
+    },
+    "observed_mismatch_counts": {
+      "missing_tool_call": 1,
+      "wrong_arg_value": 5,
+      "unexpected_tool_call": 1
+    }
+  },
+  "v1_tool_errors": [
+    {
+      "case": "R09_no_tool_capability",
+      "tool": "send",
+      "error": "RuntimeError"
+    },
+    {
+      "case": "M03_correction_handle",
+      "tool": "timeline",
+      "error": "JSONDecodeError"
+    }
+  ],
+  "improved_cases": [
+    "R08_out_of_scope",
+    "R10_missing_handle",
+    "R11_missing_url",
+    "M02_carryover_timeframe"
+  ],
+  "regressed_cases": [
+    "R01_user_tweets_routing",
+    "R09_no_tool_capability",
+    "M03_correction_handle"
+  ]
+}

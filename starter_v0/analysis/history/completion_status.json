@@ -1,0 +1,32 @@
+{
+  "provider": "openrouter",
+  "model": "nvidia/nemotron-3.5-lightning:free",
+  "jobs": [
+    {
+      "version": "v2",
+      "suite": "base",
+      "status": "provider_blocked",
+      "run_file": "runs\\v2_B_base_openrouter_20261110T151958121676.json",
+      "summary": {
+        "total_cases": 11,
+        "measured_cases": 10,
+        "provider_error_cases": 1,
+        "passed_cases": 7,
+        "case_accuracy": 0.7,
+        "tool_routing_accuracy": 0.8,
+        "argument_accuracy": 0.7,
+        "multiturn_accuracy": null,
+        "failure_counts": {
+          "wrong_tool": 2,
+          "missing_info": 1
+        },
+        "observed_mismatch_counts": {
+          "missing_tool_call": 1,
+          "wrong_arg_value": 1,
+          "extra_tool_call": 1
+        }
+      }
+    }
+  ],
+  "status": "provider_blocked"
+}

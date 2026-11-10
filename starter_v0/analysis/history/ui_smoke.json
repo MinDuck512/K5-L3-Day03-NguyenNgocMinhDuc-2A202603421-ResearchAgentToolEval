@@ -1,0 +1,19 @@
+{
+  "method": "Streamlit AppTest (offline)",
+  "exceptions": [],
+  "metrics": [
+    [
+      "Nguồn duy nhất",
+      "1"
+    ],
+    [
+      "Tên miền",
+      "1"
+    ],
+    [
+      "Vấn đề",
+      "2"
+    ]
+  ],
+  "visual_browser_check": "blocked: Computer Use could not determine browser URL"
+}
