@@ -1,77 +1,63 @@
-# starter_v0 — tool declarations (intentionally vague).
-# Names and descriptions here are a rough first draft. Routing rules, name->handle
-# mapping, arg conventions (news/timeframe/Top), and the send-confirmation boundary
-# are NOT spelled out anywhere yet. Your job is to make these declarations + the
-# system prompt good enough that the agent routes correctly on the eval.
-#
-# If you rename a tool, keep the name in sync across:
-#   this file  ->  tools/__init__.py (TOOL_FUNCTIONS)  ->  data/eval_base.json + data/eval_research_extension.json
-# `pytest tests/test_tool_contract.py` checks this sync for you.
-#
-# TODO(student):
-#   - Rewrite every description: what it does, WHEN to use it, WHEN NOT to use it.
-#   - Spell out arg conventions in parameter descriptions (handle format, topic/timeframe, search_type).
-#   - Make the `send` confirmation boundary explicit.
-#   - Declare your new tool(s) at the end of this file.
+# starter_v0 — tool declarations (optimized)
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: "Gửi một câu hỏi cho người dùng."
+    description: "Gửi câu hỏi trực tiếp cho người dùng và tạm dừng để chờ phản hồi. KHI NÀO DÙNG: Khi thông tin mơ hồ, thiếu dữ liệu bắt buộc (như thiếu URL, thiếu tên tài khoản), hoặc cần người dùng xác nhận quyết định. KHI NÀO KHÔNG DÙNG: Khi bạn đã có đủ thông tin để tự thực hiện các tool tìm kiếm khác."
     parameters:
       type: object
       properties:
-        question: {type: string, default: "", description: "Câu hỏi"}
-        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời"}
-        options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
+        question: {type: string, default: "", description: "Câu hỏi rõ ràng cần hỏi người dùng"}
+        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời mong đợi"}
+        options: {type: array, default: [], items: {type: string}, description: "Danh sách các lựa chọn nếu dùng kiểu choice"}
       required: [question]
 
   - name: timeline
-    description: "Lấy các bài đăng gần đây."
+    description: "Lấy các bài đăng gần đây của một tài khoản mạng xã hội cụ thể. KHI NÀO DÙNG: Khi người dùng muốn xem timeline hoặc bài viết mới nhất của một handle cụ thể (Lưu ý: handle truyền vào KHÔNG có ký tự '@'). KHI NÀO KHÔNG DÙNG: Khi tìm kiếm thông tin tổng hợp theo từ khóa chung (hãy dùng social_search thay thế)."
     parameters:
       type: object
       properties:
-        screenname: {type: string, default: "", description: "Tên tài khoản"}
-        limit: {type: integer, default: 5, description: "Số lượng"}
+        screenname: {type: string, default: "", description: "Tên tài khoản mạng xã hội, bắt buộc KHÔNG có ký tự '@' ở đầu (VD: 'elonmusk' thay vì '@elonmusk')"}
+        limit: {type: integer, default: 5, description: "Số lượng bài đăng tối đa cần lấy"}
       required: [screenname]
 
   - name: social_search
-    description: "Tìm trên mạng xã hội."
+    description: "Tìm kiếm bài đăng trên mạng xã hội dựa theo từ khóa. KHI NÀO DÙNG: Khi tìm thông tin thảo luận, bài viết theo chủ đề hoặc từ khóa trên mạng xã hội. KHI NÀO KHÔNG DÙNG: Khi muốn xem timeline của riêng một tài khoản (dùng timeline) hoặc tra cứu web tổng quát (dùng lookup)."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Từ khóa"}
-        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Cách sắp xếp"}
-        limit: {type: integer, default: 5, description: "Số lượng"}
+        query: {type: string, default: "", description: "Từ khóa hoặc câu truy vấn cần tìm trên mạng xã hội"}
+        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Cách sắp xếp kết quả: 'Latest' cho bài mới nhất, 'Top' cho bài nổi bật nhất"}
+        limit: {type: integer, default: 5, description: "Số lượng kết quả trả về"}
       required: [query]
 
   - name: lookup
-    description: "Tra cứu thông tin trên internet."
+    description: "Tra cứu thông tin tổng hợp trên internet. KHI NÀO DÙNG: Khi cần tìm kiếm tin tức, sự kiện mới hoặc kiến thức chung trên web. KHI NÀO KHÔNG DÙNG: Khi tìm bài đăng X/Twitter (dùng social_search), thảo luận Hacker News (dùng hn_search), hoặc tìm tài liệu học thuật/arXiv (dùng papers)."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
-        topic: {type: string, enum: [general, news], default: "general", description: "Phân loại"}
-        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian"}
-        max_results: {type: integer, default: 5, description: "Số kết quả"}
+        query: {type: string, default: "", description: "Từ khóa chủ đề cốt lõi (VD: 'AI', 'robotics'). KHÔNG thêm từ dư thừa như 'news', 'tin tức', 'today', 'hôm nay' vì đã có tham số topic và timeframe."}
+        topic: {type: string, enum: [general, news], default: "general", description: "Phân loại: chọn 'news' cho tin tức thời sự mới xảy ra, 'general' cho kiến thức tổng quát"}
+        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian giới hạn tìm kiếm"}
+        max_results: {type: integer, default: 5, description: "Số lượng kết quả tối đa"}
       required: [query]
 
   - name: fetch
-    description: "Lấy nội dung từ một địa chỉ."
+    description: "Tải và đọc nội dung chi tiết từ một URL cụ thể. KHI NÀO DÙNG: Khi bạn đã có sẵn đường dẫn URL chính xác (từ kết quả lookup hoặc người dùng cung cấp) và cần đọc nội dung trang đó. KHI NÀO KHÔNG DÙNG: Khi bạn mới chỉ có từ khóa mà chưa có URL."
     parameters:
       type: object
       properties:
-        url: {type: string, default: "", description: "Địa chỉ"}
+        url: {type: string, default: "", description: "Đường dẫn URL tuyệt đối bắt đầu bằng http:// hoặc https://"}
       required: [url]
 
   - name: format
-    description: "Trình bày dữ liệu đã có thành văn bản."
+    description: "Trình bày và tổ chức danh sách các mục dữ liệu thành văn bản markdown digest hoàn chỉnh theo khuôn mẫu. KHI NÀO DÙNG: Ở bước cuối cùng khi đã tổng hợp đủ dữ liệu cần thiết để trình bày cho người dùng."
     parameters:
       type: object
       properties:
         items:
           type: array
           default: []
-          description: "Danh sách item"
+          description: "Danh sách các item chứa thông tin đã thu thập"
           items:
             type: object
             properties:
@@ -80,46 +66,57 @@ tools:
               source: {type: string}
               summary: {type: string}
               section: {type: string}
-        template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Khuôn"}
-        headline: {type: string, default: "", description: "Tiêu đề"}
+        template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Khuôn mẫu hiển thị đầu ra"}
+        headline: {type: string, default: "", description: "Tiêu đề chính của báo cáo"}
       required: [items, template]
 
   # ---------------- Bonus tools ----------------
   - name: send
-    description: "Gửi một đoạn văn bản đi."
+    description: "Gửi văn bản hoặc bản tin đi (ví dụ lên Telegram). QUAN TRỌNG: Ranh giới bảo mật nghiêm ngặt - CHỈ ĐƯỢC PHÉP gọi công cụ này KHI VÀ CHỈ KHI người dùng đã xác nhận rõ ràng đồng ý gửi (confirmed=true). Tuyệt đối KHÔNG tự ý gọi nếu người dùng chưa bật cờ xác nhận."
     parameters:
       type: object
       properties:
-        text: {type: string, default: "", description: "Nội dung"}
-        confirmed: {type: boolean, default: false, description: "Cờ xác nhận"}
+        text: {type: string, default: "", description: "Nội dung văn bản cần gửi"}
+        confirmed: {type: boolean, default: false, description: "Cờ xác nhận: PHẢI là true nếu người dùng đã đồng ý gửi, ngược lại là false"}
       required: [text]
 
   - name: policy
-    description: "Tìm trong tài liệu nội bộ."
+    description: "Tìm kiếm thông tin trong tài liệu chính sách nội bộ của công ty."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
-        policy_area: {type: string, enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage], default: "all", description: "Nhóm"}
-        top_k: {type: integer, default: 3, description: "Số mục"}
+        query: {type: string, default: "", description: "Truy vấn tìm kiếm chính sách"}
+        policy_area: {type: string, enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage], default: "all", description: "Khu vực chính sách liên quan"}
+        top_k: {type: integer, default: 3, description: "Số lượng mục tối đa"}
       required: [query]
 
   - name: papers
-    description: "Tìm bài báo khoa học."
+    description: "Tìm kiếm các bài báo khoa học trên kho lưu trữ arXiv."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Từ khóa"}
-        max_results: {type: integer, default: 5, description: "Số lượng"}
-        sort_by: {type: string, enum: [relevance, lastUpdatedDate, submittedDate], default: "relevance", description: "Sắp xếp"}
+        query: {type: string, default: "", description: "Từ khóa tìm kiếm bài báo khoa học"}
+        max_results: {type: integer, default: 5, description: "Số lượng bài báo tối đa"}
+        sort_by: {type: string, enum: [relevance, lastUpdatedDate, submittedDate], default: "relevance", description: "Tiêu chí sắp xếp"}
       required: [query]
 
   - name: paper_text
-    description: "Lấy nội dung text của một bài báo."
+    description: "Tải và trích xuất nội dung văn bản của một bài báo trên arXiv từ URL hoặc ID."
     parameters:
       type: object
       properties:
-        arxiv_url: {type: string, default: "", description: "ID hoặc địa chỉ"}
-        max_pages: {type: integer, default: 5, description: "Số trang"}
-        max_chars: {type: integer, default: 8000, description: "Số ký tự"}
+        arxiv_url: {type: string, default: "", description: "Đường dẫn URL hoặc ID của bài báo arXiv"}
+        max_pages: {type: integer, default: 5, description: "Số trang tối đa cần đọc"}
+        max_chars: {type: integer, default: 8000, description: "Giới hạn số ký tự trả về"}
       required: [arxiv_url]
+
+  - name: hn_search
+    description: "Tìm kiếm bài viết và thảo luận kỹ thuật trên Hacker News (Algolia HN API). KHI NÀO DÙNG: Khi người dùng hỏi cụ thể về thảo luận, bài đăng, Ask HN hoặc Show HN trên Hacker News. KHI NÀO KHÔNG DÙNG: Khi tìm tin tức web nói chung (dùng lookup) hoặc tweet X/Twitter (dùng social_search)."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa tìm kiếm trên Hacker News"}
+        tags: {type: string, enum: [story, comment, ask_hn, show_hn, all], default: "story", description: "Loại mục cần tìm trên HN"}
+        sort_by: {type: string, enum: [relevance, date], default: "relevance", description: "Sắp xếp theo độ liên quan hoặc mới nhất"}
+        limit: {type: integer, default: 5, description: "Số lượng kết quả tối đa (1-20)"}
+      required: [query]

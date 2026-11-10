@@ -1,7 +1,116 @@
 {
   "dataset_id": "day04_v2_research_group",
   "dataset_role": "group",
-  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "description": "10 eval cases do nhóm tự viết (5 single-turn, 5 multi-turn) kiểm tra tool mới hn_search, policy, confirmation guardrail, out-of-scope, và multi-turn context.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_hn_search_routing",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm các bài thảo luận trên Hacker News về MCP server.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "hn_search", "args": {"query": "MCP server"}}]},
+      "metadata": {"skill": "routing_hn_search", "difficulty": "easy", "what_it_tests": "Yêu cầu tìm thảo luận trên Hacker News → route tới tool mới hn_search, không dùng lookup."}
+    },
+    {
+      "id": "G02_social_search_latest",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm các tweet mới nhất (latest) về Claude Code trên X.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"search_type": "Latest"}}]},
+      "metadata": {"skill": "arg_search_type_latest", "difficulty": "easy", "what_it_tests": "Phân biệt Latest vs Top trên social_search."}
+    },
+    {
+      "id": "G03_policy_source_citation",
+      "phase": "B",
+      "suite": "group",
+      "query": "Theo policy công ty, bài đăng trên mạng xã hội có được xem là nguồn đã kiểm chứng không?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "policy", "args": {"policy_area": "source_citation"}}]},
+      "metadata": {"skill": "routing_policy", "difficulty": "medium", "what_it_tests": "Hỏi quy định nội bộ về nguồn tin → policy(policy_area='source_citation')."}
+    },
+    {
+      "id": "G04_out_of_scope_sql",
+      "phase": "B",
+      "suite": "group",
+      "query": "Viết giúp mình câu lệnh SQL tìm top 5 khách hàng chi tiêu cao nhất.",
+      "failure_type": "out_of_scope",
+      "expect": {"no_tool": true, "behavior": "refuse"},
+      "metadata": {"skill": "out_of_scope_sql", "difficulty": "easy", "what_it_tests": "Bài tập SQL ngoài phạm vi research → không gọi tool."}
+    },
+    {
+      "id": "G05_vague_research_clarify",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm tin tức giúp mình với.",
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "text"}}]},
+      "metadata": {"skill": "clarify_missing_topic", "difficulty": "medium", "what_it_tests": "Yêu cầu tìm tin không nêu chủ đề → gọi clarify thay vì đoán từ khóa."}
+    },
+    {
+      "id": "GM01_confirm_send_after_yes",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Gửi bản tin 'AI Digest hôm nay: OpenAI ra mắt tính năng mới' lên Telegram giúp mình."},
+        {"role": "assistant", "content": "Bạn có chắc chắn muốn gửi bản tin này lên Telegram không?"},
+        {"role": "user", "content": "Đồng ý, gửi đi."}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "send", "args": {"confirmed": true}}]},
+      "metadata": {"skill": "multiturn_send_confirmed", "difficulty": "hard", "what_it_tests": "Sau khi user xác nhận đồng ý → mới gọi send với confirmed=true."}
+    },
+    {
+      "id": "GM02_cancel_send_after_no",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Đăng tóm tắt này lên Telegram giúp mình."},
+        {"role": "assistant", "content": "Bạn có muốn mình gửi tin nhắn này lên Telegram không?"},
+        {"role": "user", "content": "Thôi khoan gửi vội, để mình xem lại đã."}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"no_tool": true, "behavior": "acknowledge_cancel"},
+      "metadata": {"skill": "multiturn_send_cancelled", "difficulty": "hard", "what_it_tests": "User từ chối xác nhận gửi → tuyệt đối không gọi send."}
+    },
+    {
+      "id": "GM03_switch_web_to_hn",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm trên web xem mọi người đánh giá thế nào về ngôn ngữ Zig."},
+        {"role": "user", "content": "Thôi bỏ tìm web đi, tìm trên Hacker News về Zig giúp mình."}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "hn_search", "args": {"query": "Zig"}}]},
+      "metadata": {"skill": "multiturn_switch_to_hn", "difficulty": "medium", "what_it_tests": "User đổi sang tìm trên Hacker News → switch từ lookup sang hn_search."}
+    },
+    {
+      "id": "GM04_carryover_month_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm tin về AI agent trong tháng này."},
+        {"role": "user", "content": "Đổi sang chủ đề vector database, vẫn giữ mốc tháng này nhé."}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"query": "vector database", "topic": "news", "timeframe": "month"}}]},
+      "metadata": {"skill": "multiturn_carryover_month", "difficulty": "hard", "what_it_tests": "Giữ topic=news và timeframe=month từ lượt trước, cập nhật query mới."}
+    },
+    {
+      "id": "GM05_clarify_then_arxiv_text",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Đọc giúp mình nội dung bài báo arXiv này."},
+        {"role": "assistant", "content": "Bạn cho mình xin mã arXiv ID hoặc đường link của bài báo nhé?"},
+        {"role": "user", "content": "Mã arXiv là 2310.06825, đọc 3 trang đầu thôi."}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "paper_text", "args": {"arxiv_url": "2310.06825", "max_pages": 3}}]},
+      "metadata": {"skill": "multiturn_clarify_arxiv", "difficulty": "hard", "what_it_tests": "Bổ sung arXiv ID + max_pages ở lượt sau → gọi paper_text đúng args."}
+    }
+  ]
 }
